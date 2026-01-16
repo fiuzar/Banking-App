@@ -1,3 +1,5 @@
+'use client'
+
 import React from "react";
 import { 
   Download, 
@@ -22,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
-export function TransactionDetails({ isOpen, onClose, transaction }) {
+export default function TransactionDetails({ isOpen, onClose, transaction }) {
   if (!transaction) return null;
 
   const isCredit = transaction.type === "credit";
