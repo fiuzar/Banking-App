@@ -40,31 +40,7 @@ import Image from "next/image"
 import { Sun, Moon, SearchIcon, MenuIcon, User, X } from "lucide-react"
 
 export default function Header() {
-    // const [theme, setTheme] = useState("dark");
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-    // useEffect(() => {
-    //     async function fetchTheme() {
-    //         const savedTheme = localStorage.getItem("theme");
-    //         if (savedTheme) {
-    //             setTheme(savedTheme);
-    //         } else {
-    //             const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    //             setTheme(prefersDark ? "dark" : "light");
-    //         }
-    //     }
-    //     fetchTheme();
-    // }, []);
-
-    // useEffect(() => {
-    //     if (theme == "dark") {
-    //         document.documentElement.classList.add("dark");
-    //     }
-    //     else {
-    //         document.documentElement.classList.remove("dark");
-    //     }
-    //     localStorage.setItem("theme", theme);
-    // }, [theme]);
 
     return (
         <nav className="w-full h-14 sticky top-0 z-50 lg:px-4 backdrop-filter backdrop-blur-xl bg-opacity-5 border-b">
@@ -72,9 +48,9 @@ export default function Header() {
                 <div className="flex items-center gap-9 flex-auto">
                     <Logo />
                     <div className="lg:flex hidden lg:justify-center flex-auto items-center gap-5 text-sm font-medium text-black dark:text-muted-foreground">
-                        <Link href="#" className="hover:text-primary transition-colors p-2">Personal</Link>
-                        <Link href="#" className="hover:text-primary transition-colors p-2">Business</Link>
-                        <Link href="#" className="hover:text-primary transition-colors p-2">Help</Link>
+                        <Link href="/personal" className="hover:text-primary transition-colors p-2">Personal</Link>
+                        <Link href="/business" className="hover:text-primary transition-colors p-2">Business</Link>
+                        <Link href="/help" className="hover:text-primary transition-colors p-2">Help</Link>
                     </div>
                 </div>
 
@@ -99,9 +75,9 @@ export default function Header() {
             {/* Mobile menu */}
             {isMobileMenuOpen && (
                 <div className="absolute bg-background lg:hidden w-full flex flex-col justify-center gap-1 p-4 text-sm font-medium text-black dark:text-muted-foreground shadow-lg animate-in fade-in slide-in-from-top-2 z-50">
-                    <Link className="p-2" href={`#`} onClick={() => setIsMobileMenuOpen(false)}>Personal</Link>
-                    <Link className="p-2" href={`#`} onClick={() => setIsMobileMenuOpen(false)}>Business</Link>
-                    <Link className="p-2" href={`#`} onClick={() => setIsMobileMenuOpen(false)}>Help</Link>
+                    <Link className="p-2" href={`/personal`} onClick={() => setIsMobileMenuOpen(false)}>Personal</Link>
+                    <Link className="p-2" href={`/business`} onClick={() => setIsMobileMenuOpen(false)}>Business</Link>
+                    <Link className="p-2" href={`/help`} onClick={() => setIsMobileMenuOpen(false)}>Help</Link>
                     <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
                         <Button variant="outline" className="cursor-pointer dark:bg-zinc-900 bg-zinc-100 w-full mt-2" size="icon">
                             <User className="block" size={16} />
