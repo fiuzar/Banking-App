@@ -2,135 +2,76 @@
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "../ui/input-otp"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 import Link from "next/link"
-
-import { ContinueSignup } from "@/server-functions/authentication"
+import { otpVerification, handle_Signup } from "@/app/actions/auth" // Updated path
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
-export function VerifyEmailForm({
-    className,
-    ...props
-}) {
-
+export function VerifyEmailForm({ className, ...props }) {
     const router = useRouter()
-    const [name, setName] = useState("")
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [confirmPassword, setConfirmPassword] = useState("")
+    const searchParams = useSearchParams()
+    const email = searchParams.get("email") // Get email from URL
+    
+    const [otp, setOtp] = useState("")
     const [isDisabled, setIsDisabled] = useState(true)
-
-    const [success, setSuccess] = useState(false)
-    const [message, setMessage] = useState("")
+    const [status, setStatus] = useState({ success: false, message: "" })
 
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const emailParam = params.get('email');
-        if (emailParam) {
-            setEmail(emailParam)
-        }
-        else {
-            router.push("/register")
-        }
-    }, [])
-
-    useEffect(() => {
-
-        if (name && password && confirmPassword && email) {
-            setIsDisabled(false)
-        }
-        else {
-            setIsDisabled(true)
-        }
-
-    }, [name, password, email, confirmPassword])
+        setIsDisabled(otp.length !== 6)
+    }, [otp])
 
     async function handle_submit() {
         setIsDisabled(true)
-        const { success, message } = await ContinueSignup(name, email, password, confirmPassword)
+        const { success, message } = await otpVerification(otp, email)
+
+        setStatus({ success, message: message || (success ? "Verified successfully!" : "Error") })
 
         if (success) {
-            setSuccess(true)
-            setMessage("Sign up successful, proceed to login ...")
-
-            router.push("/login")
-        }
-        else {
-            setSuccess(false)
-            setMessage(message)
+            setTimeout(() => router.push("/login"), 2000)
+        } else {
             setIsDisabled(false)
         }
-
-        setTimeout(() => {
-            setMessage("")
-        }, 3000)
     }
 
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
             <Card>
                 <CardHeader className="text-center">
-                    <CardTitle className="text-xl">Welcome to Pips</CardTitle>
-                    <CardDescription>
-                        Register your account
-                    </CardDescription>
+                    <CardTitle className="text-xl">Verify your email</CardTitle>
+                    <CardDescription>Enter the 6-digit code sent to {email}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div>
-                        <div className="grid gap-6">
-                            <div className="grid gap-6">
-
-                                {message && (
-                                    <Alert variant={success ? "success" : "destructive"}>
-                                        <AlertTitle>
-                                            {success ? "Success" : "Error"}
-                                        </AlertTitle>
-                                        <AlertDescription>{message}</AlertDescription>
-                                    </Alert>
-                                )}
-
-                                <div className="grid gap-3">
-                                    <div className="flex items-center">
-                                        <Label htmlFor="name">Full Name</Label>
-                                    </div>
-                                    <Input id="name" type="text" placeholder="John Emmanuel" value={name} onChange={(e) => setName(e.target.value)} required />
-                                </div>
-                                <div className="grid gap-3">
-                                    <div className="flex items-center">
-                                        <Label htmlFor="password">Password</Label>
-                                    </div>
-                                    <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                                </div>
-
-                                <div className="grid gap-3">
-                                    <div className="flex items-center">
-                                        <Label htmlFor="confirm_password">Confirm Password</Label>
-                                    </div>
-                                    <Input id="confirm_password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-                                </div>
-                                <Button onClick={handle_submit} disabled={isDisabled} type="submit" className="w-full bg-green-800 text-white cursor-pointer hover:text-black">
-                                    Continue
-                                </Button>
+                    <div className="grid gap-6">
+                        {status.message && (
+                            <Alert variant={status.success ? "success" : "destructive"}>
+                                <AlertTitle>{status.success ? "Success" : "Error"}</AlertTitle>
+                                <AlertDescription>{status.message}</AlertDescription>
+                            </Alert>
+                        )}
+                        <div className="grid gap-3">
+                            <Label>One-Time Password</Label>
+                            <div className="flex justify-center">
+                                <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+                                    <InputOTPGroup>
+                                        <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                                    </InputOTPGroup>
+                                    <InputOTPSeparator />
+                                    <InputOTPGroup>
+                                        <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
+                                    </InputOTPGroup>
+                                </InputOTP>
                             </div>
-
                         </div>
+                        <Button onClick={handle_submit} disabled={isDisabled} className="w-full bg-green-800 text-white">
+                            Verify Account
+                        </Button>
                     </div>
                 </CardContent>
             </Card>
-            <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-                By clicking continue, you agree to our <Link href="/terms">Terms of Service</Link>{" "}
-                and <Link href="/privacy-policy">Privacy Policy</Link>.
-            </div>
         </div>
     )
 }

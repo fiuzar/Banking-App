@@ -97,7 +97,7 @@ export default function CompliancePage() {
           <p className="text-slate-700 font-medium mb-4 flex items-center justify-center gap-2">
             <Mail size={18} className="text-blue-600"/> For compliance-related inquiries, contact:
           </p>
-          <a href="mailto:suppor@paysense.com" className="text-2xl font-bold text-brand-blue hover:underline">
+          <a href="mailto:support@paysense.com" className="text-2xl font-bold text-brand-blue hover:underline">
             support@paysense.com
           </a>
         </div>

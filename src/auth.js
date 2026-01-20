@@ -1,63 +1,78 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
+import { query } from "@/dbh";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: process.env.AUTH_SECRET,
   providers: [
-    Google,
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
     Credentials({
-      credentials: {
-        id: { label: "Id", type: "number" },
-        name: { label: "Name", type: "text" },
-        email: { label: "Email", type: "text" },
-      },
       async authorize(credentials) {
-        if (!credentials?.id || !credentials?.email || !credentials?.name) {
-          throw new Error("Missing credentials");
-        }
-
-        const user = {
-          id: parseInt(credentials.id),
+        if (!credentials?.email || !credentials?.id) return null;
+        return {
+          id: credentials.id,
           name: credentials.name,
           email: credentials.email,
-          role: "USER",
         };
-
-        return user
       },
     }),
   ],
-
-  pages: {
-    signIn: "/login",
-    signOut: "/login",
-  },
-
   callbacks: {
-    async jwt({ token, user }) {
-      // 🧩 You must RETURN the token here
+    async signIn({ account, profile }) {
+      if (account?.provider === "google") {
+        try {
+          const email = profile?.email?.toLowerCase();
+          const firstName = profile?.given_name || "User";
+          const lastName = profile?.family_name || "";
+          const image = profile?.picture;
+
+          const { rows } = await query("SELECT * FROM paysense_users WHERE email = $1", [email]);
+
+          if (rows.length === 0) {
+            await query(
+              "INSERT INTO paysense_users (first_name, last_name, email, password, verified, image) VALUES ($1, $2, $3, $4, $5, $6)",
+              [firstName, lastName, email, "social", true, image]
+            );
+          }
+          return true;
+        } catch (error) {
+          console.error("Google Sync Error:", error);
+          return false;
+        }
+      }
+      return true;
+    },
+
+    async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id;
-        token.name = user.name;
-        token.email = user.email;
-        token.role = "USER";
+        // Fetch the most up-to-date info from DB on login
+        const { rows } = await query(
+          "SELECT id, verified FROM paysense_users WHERE email = $1",
+          [user.email]
+        );
+        
+        if (rows.length > 0) {
+          token.id = rows[0].id;
+          token.verified = rows[0].verified;
+        }
       }
       return token;
     },
 
     async session({ session, token }) {
-      // 🧩 Safely attach values
-      if (session?.user) {
+      if (session.user) {
         session.user.id = token.id;
-        session.user.name = token.name;
-        session.user.email = token.email;
-        session.user.role = token.role;
+        session.user.verified = token.verified;
       }
       return session;
     },
   },
-  session: {
-    strategy: "jwt",
+  pages: {
+    signIn: "/login",
   },
+  session: { strategy: "jwt" },
 });
