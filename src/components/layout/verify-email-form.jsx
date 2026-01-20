@@ -7,7 +7,7 @@ import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "../ui/
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 import Link from "next/link"
-import { otpVerification, handle_Signup } from "@/app/actions/auth" // Updated path
+import { otpVerification, handle_Signup } from "@/server-functions/authentication" // Updated path
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
