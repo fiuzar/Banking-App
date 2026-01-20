@@ -19,8 +19,8 @@ export async function proxy(request) {
     }
   }
 
-  // 2. Redirect logged-in users away from Login/Register
-  if (isAuthRoute && session) {
+  // 2. Redirect logged-in users away from Login (but NOT Register)
+  if (pathname === "/login" && session) {
     return NextResponse.redirect(new URL("/app", request.url));
   }
 

@@ -48,27 +48,37 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
 
     async jwt({ token, user, account }) {
-      if (user) {
-        // Fetch the most up-to-date info from DB on login
-        const { rows } = await query(
-          "SELECT id, verified FROM paysense_users WHERE email = $1",
-          [user.email]
-        );
-        
-        if (rows.length > 0) {
-          token.id = rows[0].id;
-          token.verified = rows[0].verified;
+      try {
+        if (user) {
+          // Fetch the most up-to-date info from DB on login
+          const { rows } = await query(
+            "SELECT id, verified FROM paysense_users WHERE email = $1",
+            [user.email]
+          );
+
+          if (rows.length > 0) {
+            token.id = rows[0].id;
+            token.verified = rows[0].verified;
+          }
         }
+        return token;
+      } catch (e) {
+        console.error("JWT callback error:", e);
+        return token;
       }
-      return token;
     },
 
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id;
-        session.user.verified = token.verified;
+      try {
+        if (session.user) {
+          session.user.id = token.id;
+          session.user.verified = token.verified;
+        }
+        return session;
+      } catch (e) {
+        console.error("Session callback error:", e);
+        return session;
       }
-      return session;
     },
   },
   pages: {
