@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, ArrowsUpDown, CheckCircle2 } from "lucide-react"
+import { ArrowLeft, ArrowUpDown, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
 
 export default function InternalTransfer() {
@@ -44,7 +44,7 @@ export default function InternalTransfer() {
             onClick={() => setIsSavingsToChecking(!isSavingsToChecking)}
             className="absolute left-1/2 -translate-x-1/2 top-[42%] z-10 bg-primary text-white p-3 rounded-full border-4 border-background shadow-lg active:scale-90 transition-transform"
           >
-            <ArrowsUpDown size={20} />
+            <ArrowUpDown size={20} />
           </button>
 
           <AccountBox 
