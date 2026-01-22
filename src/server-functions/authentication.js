@@ -150,3 +150,14 @@ async function create_otp(email) {
         console.error("Email send error:", e);
     }
 }
+
+// --- GET CURRENT USER ---
+export async function getCurrentUser(user_id) {
+    try {
+        const { rows } = await query("SELECT id, first_name, last_name, email FROM paysense_users WHERE id = $1", [user_id]);
+        return rows[0] || null;
+    } catch (e) {
+        console.error("Get current user error:", e);
+        return {};
+    }
+}
