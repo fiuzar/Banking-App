@@ -1,86 +1,226 @@
 'use client'
 
-import React from "react";
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
 import { 
-  User, Lock, Bell, Headset, LogOut, 
-  ShieldCheck, Smartphone, Mail, Phone,
-  ChevronRight, Fingerprint, KeyRound,
-  FileCheck
-} from "lucide-react";
+  User, 
+  ShieldCheck, 
+  Bell, 
+  Globe, 
+  LogOut, 
+  ChevronRight, 
+  Camera,
+  Mail,
+  Smartphone
+} from "lucide-react"
+import Link from "next/link"
 
-import { useSession } from "next-auth/react";
-
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-
-import { UserSetting } from "@/components/app/user-setting";
-import { SecuritySetting } from "@/components/app/security-setting";
-import { NotificationSetting } from "@/components/notification-setting";
-import { SupportSetting } from "@/components/app/support-settings";
-
-export default function SettingsPage() {
-
-	const {data: session} = useSession()
-	const user_id = session?.user?.id
+export default function AccountManagement() {
+  const [isNotificationsOn, setIsNotificationsOn] = useState(true)
 
   return (
-    <div className="flex flex-col gap-8 p-6 md:px-10 max-w-5xl mx-auto w-full">
-      
-      {/* HEADER */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">Manage your account preferences and security settings.</p>
+    <div className="min-h-screen bg-slate-50 pb-20">
+      {/* Profile Header */}
+      <div className="bg-primary pt-12 pb-20 px-6 text-white text-center relative">
+        <Link href="/app" className="absolute left-6 top-6">
+          <ArrowLeft size={24} />
+        </Link>
+        
+        <div className="relative inline-block">
+          <div className="w-24 h-24 rounded-full border-4 border-white/20 overflow-hidden shadow-xl mx-auto">
+            <img src="https://github.com/shadcn.png" alt="Profile" />
+          </div>
+          <button className="absolute bottom-0 right-0 bg-white text-primary p-2 rounded-full shadow-lg border border-slate-100">
+            <Camera size={16} />
+          </button>
+        </div>
+        
+        <h1 className="mt-4 text-2xl font-black">John Doe</h1>
+        <p className="text-white/70 text-sm font-medium">Lagos, Nigeria 🇳🇬</p>
       </div>
 
-      <Tabs defaultValue="profile" className="flex flex-col md:flex-row gap-8">
-        {/* TABS NAVIGATION (Vertical on desktop) */}
-        <TabsList className="flex md:flex-col h-auto bg-transparent gap-2 md:w-64 items-start justify-start">
-          <TabsTrigger value="profile" className="w-full justify-start gap-3 py-3 data-[state=active]:bg-muted">
-            <User className="h-4 w-4" /> Personal Info
-          </TabsTrigger>
-          <TabsTrigger value="kyc" className="w-full justify-start gap-3 py-3 data-[state=active]:bg-muted">
-            <FileCheck className="h-4 w-4" /> KYC & Compliance
-          </TabsTrigger>
-          <TabsTrigger value="security" className="w-full justify-start gap-3 py-3 data-[state=active]:bg-muted">
-            <ShieldCheck className="h-4 w-4" /> Security
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="w-full justify-start gap-3 py-3 data-[state=active]:bg-muted">
-            <Bell className="h-4 w-4" /> Notifications
-          </TabsTrigger>
-          <TabsTrigger value="support" className="w-full justify-start gap-3 py-3 data-[state=active]:bg-muted">
-            <Headset className="h-4 w-4" /> Support
-          </TabsTrigger>
-          
-          <Separator className="my-2" />
-          
-          <Button variant="ghost" className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50 py-3">
-            <LogOut className="h-4 w-4" /> Logout
-          </Button>
-        </TabsList>
-
-        {/* CONTENT SECTIONS */}
-        <div className="flex-1">
-          {/* PERSONAL INFO */}
-          <UserSetting user_id={user_id} />
-
-          {/* SECURITY */}
-          <SecuritySetting user_id={user_id} />
-
-          {/* NOTIFICATIONS */}
-          <NotificationSetting user_id={user_id} />
-
-          {/* SUPPORT */}
-          <SupportSetting user_id={user_id} />
+      <div className="max-w-md mx-auto px-6 -mt-10 space-y-6">
+        {/* Account Info Card */}
+        <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 space-y-4">
+          <h2 className="text-[10px] font-bold text-n-500 uppercase tracking-widest">Personal Information</h2>
+          <div className="space-y-4">
+            <InfoRow icon={<Mail size={18} />} label="Email" value="john.doe@example.com" />
+            <InfoRow icon={<Smartphone size={18} />} label="Phone" value="+234 810 ••• ••••" />
+          </div>
         </div>
-      </Tabs>
+
+        {/* Settings Groups */}
+        <div className="space-y-2">
+          <p className="text-[10px] font-bold text-n-500 uppercase tracking-widest ml-1">General Settings</p>
+          <div className="bg-white rounded-[24px] border border-slate-100 overflow-hidden divide-y divide-slate-50">
+            <SettingsLink 
+                icon={<ShieldCheck className="text-blue-500" />} 
+                title="Security & Privacy" 
+                subtitle="2FA, Biometrics, Password" 
+            />
+            <SettingsLink 
+                icon={<Globe className="text-primary" />} 
+                title="Language & Region" 
+                subtitle="English (US), USD" 
+                badge="🇳🇬"
+            />
+            <div className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="p-2 bg-orange-50 text-orange-500 rounded-lg">
+                        <Bell size={20} />
+                    </div>
+                    <div>
+                        <p className="text-sm font-bold text-brand-dark">Push Notifications</p>
+                        <p className="text-[10px] text-n-500">Alerts for all transactions</p>
+                    </div>
+                </div>
+                <input 
+                    type="checkbox" 
+                    checked={isNotificationsOn} 
+                    onChange={() => setIsNotificationsOn(!isNotificationsOn)}
+                    className="w-10 h-5 bg-slate-200 rounded-full appearance-none checked:bg-primary transition-colors relative cursor-pointer before:content-[''] before:absolute before:w-4 before:h-4 before:bg-white before:rounded-full before:top-0.5 before:left-0.5 checked:before:translate-x-5 before:transition-transform"
+                />
+            </div>
+          </div>
+        </div>
+
+        {/* Support & Legal */}
+        <div className="bg-white rounded-[24px] border border-slate-100 overflow-hidden divide-y divide-slate-50">
+          <SettingsLink title="Help Center" subtitle="24/7 Live Support" />
+          <SettingsLink title="Legal & Terms" subtitle="Privacy Policy, User Agreement" />
+        </div>
+
+        {/* Logout Button */}
+        <Button variant="ghost" className="w-full h-14 text-red-500 font-bold flex gap-2 hover:bg-red-50 hover:text-red-600 rounded-2xl">
+          <LogOut size={20} />
+          Sign Out
+        </Button>
+      </div>
     </div>
-  );
+  )
 }
+
+function InfoRow({ icon, label, value }) {
+    return (
+        <div className="flex items-center gap-4">
+            <div className="text-n-300">{icon}</div>
+            <div>
+                <p className="text-[10px] text-n-500 font-bold uppercase">{label}</p>
+                <p className="text-sm font-medium text-brand-dark">{value}</p>
+            </div>
+        </div>
+    )
+}
+
+function SettingsLink({ icon, title, subtitle, badge }) {
+    return (
+        <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors">
+            <div className="flex items-center gap-4">
+                {icon && <div className="p-2 bg-secondary rounded-lg">{icon}</div>}
+                <div>
+                    <p className="text-sm font-bold text-brand-dark">{title}</p>
+                    <p className="text-[10px] text-n-500">{subtitle}</p>
+                </div>
+            </div>
+            <div className="flex items-center gap-2">
+                {badge && <span className="text-xs">{badge}</span>}
+                <ChevronRight size={18} className="text-n-300" />
+            </div>
+        </div>
+    )
+}
+
+function ArrowLeft({ size }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m15 18-6-6 6-6"/>
+        </svg>
+    )
+}
+
+// 'use client'
+
+// import React from "react";
+// import { 
+//   User, Lock, Bell, Headset, LogOut, 
+//   ShieldCheck, Smartphone, Mail, Phone,
+//   ChevronRight, Fingerprint, KeyRound,
+//   FileCheck
+// } from "lucide-react";
+
+// import { useSession } from "next-auth/react";
+
+// import { Button } from "@/components/ui/button";
+// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+// import { Input } from "@/components/ui/input";
+// import { Label } from "@/components/ui/label";
+// import { Switch } from "@/components/ui/switch";
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// import { Separator } from "@/components/ui/separator";
+
+// import { UserSetting } from "@/components/app/user-setting";
+// import { SecuritySetting } from "@/components/app/security-setting";
+// import { NotificationSetting } from "@/components/notification-setting";
+// import { SupportSetting } from "@/components/app/support-settings";
+
+// export default function SettingsPage() {
+
+// 	const {data: session} = useSession()
+// 	const user_id = session?.user?.id
+
+//   return (
+//     <div className="flex flex-col gap-8 p-6 md:px-10 max-w-5xl mx-auto w-full">
+      
+//       {/* HEADER */}
+//       <div>
+//         <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+//         <p className="text-sm text-muted-foreground">Manage your account preferences and security settings.</p>
+//       </div>
+
+//       <Tabs defaultValue="profile" className="flex flex-col md:flex-row gap-8">
+//         {/* TABS NAVIGATION (Vertical on desktop) */}
+//         <TabsList className="flex md:flex-col h-auto bg-transparent gap-2 md:w-64 items-start justify-start">
+//           <TabsTrigger value="profile" className="w-full justify-start gap-3 py-3 data-[state=active]:bg-muted">
+//             <User className="h-4 w-4" /> Personal Info
+//           </TabsTrigger>
+//           <TabsTrigger value="kyc" className="w-full justify-start gap-3 py-3 data-[state=active]:bg-muted">
+//             <FileCheck className="h-4 w-4" /> KYC & Compliance
+//           </TabsTrigger>
+//           <TabsTrigger value="security" className="w-full justify-start gap-3 py-3 data-[state=active]:bg-muted">
+//             <ShieldCheck className="h-4 w-4" /> Security
+//           </TabsTrigger>
+//           <TabsTrigger value="notifications" className="w-full justify-start gap-3 py-3 data-[state=active]:bg-muted">
+//             <Bell className="h-4 w-4" /> Notifications
+//           </TabsTrigger>
+//           <TabsTrigger value="support" className="w-full justify-start gap-3 py-3 data-[state=active]:bg-muted">
+//             <Headset className="h-4 w-4" /> Support
+//           </TabsTrigger>
+          
+//           <Separator className="my-2" />
+          
+//           <Button variant="ghost" className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50 py-3">
+//             <LogOut className="h-4 w-4" /> Logout
+//           </Button>
+//         </TabsList>
+
+//         {/* CONTENT SECTIONS */}
+//         <div className="flex-1">
+//           {/* PERSONAL INFO */}
+//           <UserSetting user_id={user_id} />
+
+//           {/* SECURITY */}
+//           <SecuritySetting user_id={user_id} />
+
+//           {/* NOTIFICATIONS */}
+//           <NotificationSetting user_id={user_id} />
+
+//           {/* SUPPORT */}
+//           <SupportSetting user_id={user_id} />
+//         </div>
+//       </Tabs>
+//     </div>
+//   );
+// }
 
 
 // app/dashboard/settings/page.tsx

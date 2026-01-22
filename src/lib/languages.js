@@ -1,0 +1,32 @@
+export const dict = {
+  en: {
+    welcome: "Welcome back",
+    savings: "SAVINGS",
+    checking: "CHECKING",
+    quick_services: "Quick Services",
+    wire: "Wire Transfer",
+    local: "Local Transfer",
+    internal: "Internal Transfer",
+    crypto_buy: "Buy Crypto",
+    bills: "Pay Bills",
+    add_user: "Add Beneficiary",
+    card_dep: "Card Deposit",
+    crypto_dep: "Crypto Deposit",
+    check_dep: "Check Deposit",
+  },
+  fr: {
+    welcome: "Bon retour",
+    savings: "ÉPARGNE",
+    checking: "COURANT",
+    quick_services: "Services Rapides",
+    wire: "Virement",
+    local: "Transfert Local",
+    internal: "Transfert Interne",
+    crypto_buy: "Acheter Crypto",
+    bills: "Factures",
+    add_user: "Bénéficiaire",
+    card_dep: "Dépôt Carte",
+    crypto_dep: "Dépôt Crypto",
+    check_dep: "Dépôt Chèque",
+  }
+};

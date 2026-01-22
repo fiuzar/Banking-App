@@ -158,6 +158,9 @@
   .text-meta {
     @apply text-[12px] text-n-500 font-normal;
   }
+  
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
 @layer components {

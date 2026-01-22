@@ -157,168 +157,270 @@
 
 
 // app/dashboard/wallets/[id]/page.tsx
-"use client";
+// "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { 
-  ArrowLeft, Copy, Send, Download, 
-  RefreshCcw, Plus, Landmark, Eye, EyeOff, Info 
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+// import { useState } from "react";
+// import Link from "next/link";
+// import { 
+//   ArrowLeft, Copy, Send, Download, 
+//   RefreshCcw, Plus, Landmark, Eye, EyeOff, Info 
+// } from "lucide-react";
+// import { Button } from "@/components/ui/button";
+// import { Card } from "@/components/ui/card";
+// import { Badge } from "@/components/ui/badge";
 
-export default function WalletDetailsPage({ params }) {
-  const [showBalance, setShowBalance] = useState(true);
-  const isUSD = params.id === "usd"; // Logic to determine currency context
-  const symbol = isUSD ? "$" : "€";
-  const currencyName = isUSD ? "USD Wallet" : "EUR Wallet";
+// export default function WalletDetailsPage({ params }) {
+//   const [showBalance, setShowBalance] = useState(true);
+//   const isUSD = params.id === "usd"; // Logic to determine currency context
+//   const symbol = isUSD ? "$" : "€";
+//   const currencyName = isUSD ? "USD Wallet" : "EUR Wallet";
 
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    // You could trigger a shadcn toast here
-  };
+//   const copyToClipboard = (text) => {
+//     navigator.clipboard.writeText(text);
+//     // You could trigger a shadcn toast here
+//   };
 
-  return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-20">
+//   return (
+//     <div className="max-w-4xl mx-auto space-y-6 pb-20">
       
-      {/* 1. Header (Context Anchor) */}
-      <div className="flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-16 z-20 py-4 -mx-4 px-4 border-b border-n-100">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="p-2 hover:bg-n-100 rounded-full">
-            <ArrowLeft className="w-5 h-5 text-brand-dark" />
-          </Link>
-          <div>
-            <h1 className="text-sm font-bold text-n-500 uppercase tracking-tighter">{currencyName}</h1>
-            <div className="flex items-center gap-2">
-              <span className="balance-lg text-brand-dark">
-                {showBalance ? `${symbol}12,450.00` : "••••••"}
-              </span>
-              <button onClick={() => setShowBalance(!showBalance)} className="text-n-300 hover:text-brand-blue">
-                {showBalance ? <Eye size={18} /> : <EyeOff size={18} />}
-              </button>
-            </div>
-          </div>
-        </div>
-        <Badge className={isUSD ? "bg-usd/10 text-usd border-none" : "bg-eur/10 text-eur border-none"}>
-          {isUSD ? "US Dollar" : "Euro"}
-        </Badge>
-      </div>
+//       {/* 1. Header (Context Anchor) */}
+//       <div className="flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-16 z-20 py-4 -mx-4 px-4 border-b border-n-100">
+//         <div className="flex items-center gap-4">
+//           <Link href="/dashboard" className="p-2 hover:bg-n-100 rounded-full">
+//             <ArrowLeft className="w-5 h-5 text-brand-dark" />
+//           </Link>
+//           <div>
+//             <h1 className="text-sm font-bold text-n-500 uppercase tracking-tighter">{currencyName}</h1>
+//             <div className="flex items-center gap-2">
+//               <span className="balance-lg text-brand-dark">
+//                 {showBalance ? `${symbol}12,450.00` : "••••••"}
+//               </span>
+//               <button onClick={() => setShowBalance(!showBalance)} className="text-n-300 hover:text-brand-blue">
+//                 {showBalance ? <Eye size={18} /> : <EyeOff size={18} />}
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//         <Badge className={isUSD ? "bg-usd/10 text-usd border-none" : "bg-eur/10 text-eur border-none"}>
+//           {isUSD ? "US Dollar" : "Euro"}
+//         </Badge>
+//       </div>
 
-      {/* 2. Account Info Card (Identity & Trust) */}
-      <Card className="border-none shadow-soft p-6 bg-brand-dark text-white rounded-brand-card relative overflow-hidden">
-        {/* Subtle background pattern for premium feel */}
-        <div className="absolute top-0 right-0 p-4 opacity-10">
-          <Landmark size={80} />
-        </div>
+//       {/* 2. Account Info Card (Identity & Trust) */}
+//       <Card className="border-none shadow-soft p-6 bg-brand-dark text-white rounded-brand-card relative overflow-hidden">
+//         {/* Subtle background pattern for premium feel */}
+//         <div className="absolute top-0 right-0 p-4 opacity-10">
+//           <Landmark size={80} />
+//         </div>
         
-        <div className="grid md:grid-cols-2 gap-8 relative z-10">
-          <div className="space-y-4">
-            <InfoItem label="Account Number" value="1234567890" onCopy={copyToClipboard} />
-            <InfoItem label="SWIFT / BIC" value="PYSN US 33" onCopy={copyToClipboard} />
+//         <div className="grid md:grid-cols-2 gap-8 relative z-10">
+//           <div className="space-y-4">
+//             <InfoItem label="Account Number" value="1234567890" onCopy={copyToClipboard} />
+//             <InfoItem label="SWIFT / BIC" value="PYSN US 33" onCopy={copyToClipboard} />
+//           </div>
+//           <div className="space-y-4">
+//             <InfoItem label="IBAN" value="DE89 3704 0044 0532 0130 00" onCopy={copyToClipboard} />
+//             <div className="flex justify-between items-center border-b border-white/10 pb-2">
+//               <span className="text-[10px] uppercase font-bold text-n-300">Wallet Status</span>
+//               <Badge className="bg-usd text-white border-none text-[10px]">Active</Badge>
+//             </div>
+//           </div>
+//         </div>
+//       </Card>
+
+//       {/* 3. Primary Actions */}
+//       <div className="grid grid-cols-4 gap-4">
+//         <QuickAction icon={<Send size={20} />} label="Send" />
+//         <QuickAction icon={<Plus size={20} />} label="Receive" />
+//         <QuickAction icon={<RefreshCcw size={20} />} label="Convert" href="/dashboard/convert" />
+//         <QuickAction icon={<Landmark size={20} />} label="Withdraw" />
+//       </div>
+
+//       {/* 4. Activity Summary */}
+//       <div className="grid grid-cols-3 gap-4">
+//         <SummaryTile label="Incoming" value="+$8,200" color="text-usd" />
+//         <SummaryTile label="Outgoing" value="-$5,100" color="text-bank-error" />
+//         <SummaryTile label="Conversions" value="2" color="text-brand-blue" />
+//       </div>
+
+//       {/* 5. Transactions List */}
+//       <div className="space-y-4">
+//         <h3 className="font-bold text-brand-dark mt-8">Recent Activity</h3>
+//         <Card className="border-none shadow-soft overflow-hidden rounded-brand-card">
+//             <TransactionItem title="Amazon EU" date="Jan 10, 2026" amount="-€120.00" status="Completed" />
+//             <TransactionItem title="FX Conversion" date="Jan 09, 2026" amount="-$1,000.00" status="Completed" isFX />
+//             <TransactionItem title="Salary Credit" date="Jan 07, 2026" amount="+$3,200.00" status="Completed" isPositive />
+//         </Card>
+//       </div>
+
+//       {/* 7. Secondary Actions Footer */}
+//       <div className="flex justify-center gap-6 py-8">
+//         <button className="flex items-center gap-2 text-xs font-bold text-n-500 hover:text-brand-blue transition-colors">
+//           <Download size={14} /> Download Statement
+//         </button>
+//         <button className="flex items-center gap-2 text-xs font-bold text-n-500 hover:text-brand-blue transition-colors">
+//           <Info size={14} /> View Limits
+//         </button>
+//       </div>
+//     </div>
+//   );
+// }
+
+// // --- Internal Components ---
+
+// function InfoItem({ label, value, onCopy }) {
+//   return (
+//     <div className="space-y-1 group border-b border-white/10 pb-2">
+//       <p className="text-[10px] uppercase font-bold text-n-300">{label}</p>
+//       <div className="flex justify-between items-center">
+//         <span className="font-mono text-sm tracking-wider">{value}</span>
+//         <button onClick={() => onCopy(value)} className="p-1 hover:bg-white/10 rounded">
+//           <Copy size={14} className="text-n-300" />
+//         </button>
+//       </div>
+//     </div>
+//   );
+// }
+
+// function QuickAction({ icon, label, href = "#" }) {
+//   return (
+//     <Link href={href} className="flex flex-col items-center gap-2 group">
+//       <div className="w-14 h-14 bg-white shadow-soft rounded-2xl flex items-center justify-center text-brand-blue group-hover:bg-brand-blue group-hover:text-white transition-all">
+//         {icon}
+//       </div>
+//       <span className="text-xs font-bold text-n-700">{label}</span>
+//     </Link>
+//   );
+// }
+
+// function SummaryTile({ label, value, color }) {
+//   return (
+//     <div className="bg-n-100/50 p-4 rounded-brand-card border border-n-100">
+//       <p className="text-[10px] uppercase font-bold text-n-500 mb-1">{label}</p>
+//       <p className={`text-sm font-mono font-bold ${color}`}>{value}</p>
+//     </div>
+//   );
+// }
+
+// function TransactionItem({ title, date, amount, status, isPositive, isFX }) {
+//   return (
+//     <div className="flex justify-between items-center p-4 hover:bg-n-100/50 border-b border-n-100 last:border-none transition-colors cursor-pointer">
+//       <div className="flex items-center gap-4">
+//         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isFX ? 'bg-brand-blue/10 text-brand-blue' : 'bg-n-100 text-n-500'}`}>
+//           {isFX ? <RefreshCcw size={18} /> : <Landmark size={18} />}
+//         </div>
+//         <div>
+//           <p className="text-sm font-bold text-brand-dark">{title}</p>
+//           <p className="text-[11px] text-n-500">{date} • {status}</p>
+//         </div>
+//       </div>
+//       <div className="text-right">
+//         <p className={`text-sm font-mono font-bold ${isPositive ? 'text-usd' : 'text-brand-dark'}`}>
+//           {amount}
+//         </p>
+//       </div>
+//     </div>
+//   );
+// }
+
+'use client'
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { 
+  ArrowLeft, 
+  ArrowUpRight, 
+  ArrowDownLeft, 
+  Copy, 
+  Search, 
+  Filter,
+  Download
+} from "lucide-react"
+import Link from "next/link"
+
+export default function AccountDetails({ params }) {
+  const isSavings = params.type === 'savings'
+  
+  // Mock Transaction Data
+  const transactions = [
+    { id: 1, name: "Apple Store", date: "Jan 22, 2026", amount: "-$1,299.00", type: "debit", category: "Shopping" },
+    { id: 2, name: "Wire Transfer: Stripe", date: "Jan 20, 2026", amount: "+$4,500.00", type: "credit", category: "Income" },
+    { id: 3, name: "Internal: To Checking", date: "Jan 18, 2026", amount: "-$500.00", type: "debit", category: "Transfer" },
+    { id: 4, name: "ATM Withdrawal", date: "Jan 15, 2026", amount: "-$200.00", type: "debit", category: "Cash" },
+  ]
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header Section */}
+      <div className="bg-primary pt-8 pb-24 px-6 text-white relative">
+        <div className="flex justify-between items-center mb-8">
+          <Link href="/app">
+            <ArrowLeft size={24} />
+          </Link>
+          <button className="p-2 bg-white/10 rounded-full">
+            <Download size={20} />
+          </button>
+        </div>
+
+        <div className="space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">
+            {isSavings ? 'USD Savings Account' : 'USD Checking Account'}
+          </p>
+          <h1 className="balance-xl">
+            {isSavings ? '$5,010,876.00' : '$12,450.00'}
+          </h1>
+        </div>
+
+        {/* Account Details Mini-Card */}
+        <div className="mt-8 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 flex justify-between items-center">
+          <div>
+            <p className="text-[9px] uppercase opacity-50 font-bold mb-1">Account Number</p>
+            <p className="text-sm font-mono tracking-widest">0092 1102 4456</p>
           </div>
-          <div className="space-y-4">
-            <InfoItem label="IBAN" value="DE89 3704 0044 0532 0130 00" onCopy={copyToClipboard} />
-            <div className="flex justify-between items-center border-b border-white/10 pb-2">
-              <span className="text-[10px] uppercase font-bold text-n-300">Wallet Status</span>
-              <Badge className="bg-usd text-white border-none text-[10px]">Active</Badge>
+          <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+            <Copy size={16} className="text-white/60" />
+          </button>
+        </div>
+      </div>
+
+      {/* Transactions Section */}
+      <div className="bg-white rounded-t-[40px] -mt-10 min-h-[60vh] p-6 shadow-2xl relative z-10">
+        <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8" />
+        
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-lg font-black text-brand-dark">History</h2>
+          <div className="flex gap-2">
+            <button className="p-2 bg-secondary rounded-full text-n-500"><Search size={18} /></button>
+            <button className="p-2 bg-secondary rounded-full text-n-500"><Filter size={18} /></button>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          {transactions.map((tx) => (
+            <div key={tx.id} className="flex justify-between items-center group cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${tx.type === 'credit' ? 'bg-bank-success/10 text-bank-success' : 'bg-slate-100 text-slate-500'}`}>
+                  {tx.type === 'credit' ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}
+                </div>
+                <div>
+                  <p className="font-bold text-brand-dark group-hover:text-primary transition-colors">{tx.name}</p>
+                  <p className="text-[10px] text-n-500 font-medium uppercase tracking-tighter">{tx.date} • {tx.category}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className={`font-bold ${tx.type === 'credit' ? 'text-bank-success' : 'text-brand-dark'}`}>
+                  {tx.amount}
+                </p>
+                <p className="text-[9px] text-n-300 font-bold uppercase">Settled</p>
+              </div>
             </div>
-          </div>
+          ))}
         </div>
-      </Card>
 
-      {/* 3. Primary Actions */}
-      <div className="grid grid-cols-4 gap-4">
-        <QuickAction icon={<Send size={20} />} label="Send" />
-        <QuickAction icon={<Plus size={20} />} label="Receive" />
-        <QuickAction icon={<RefreshCcw size={20} />} label="Convert" href="/dashboard/convert" />
-        <QuickAction icon={<Landmark size={20} />} label="Withdraw" />
-      </div>
-
-      {/* 4. Activity Summary */}
-      <div className="grid grid-cols-3 gap-4">
-        <SummaryTile label="Incoming" value="+$8,200" color="text-usd" />
-        <SummaryTile label="Outgoing" value="-$5,100" color="text-bank-error" />
-        <SummaryTile label="Conversions" value="2" color="text-brand-blue" />
-      </div>
-
-      {/* 5. Transactions List */}
-      <div className="space-y-4">
-        <h3 className="font-bold text-brand-dark mt-8">Recent Activity</h3>
-        <Card className="border-none shadow-soft overflow-hidden rounded-brand-card">
-            <TransactionItem title="Amazon EU" date="Jan 10, 2026" amount="-€120.00" status="Completed" />
-            <TransactionItem title="FX Conversion" date="Jan 09, 2026" amount="-$1,000.00" status="Completed" isFX />
-            <TransactionItem title="Salary Credit" date="Jan 07, 2026" amount="+$3,200.00" status="Completed" isPositive />
-        </Card>
-      </div>
-
-      {/* 7. Secondary Actions Footer */}
-      <div className="flex justify-center gap-6 py-8">
-        <button className="flex items-center gap-2 text-xs font-bold text-n-500 hover:text-brand-blue transition-colors">
-          <Download size={14} /> Download Statement
-        </button>
-        <button className="flex items-center gap-2 text-xs font-bold text-n-500 hover:text-brand-blue transition-colors">
-          <Info size={14} /> View Limits
-        </button>
+        <Button variant="ghost" className="w-full mt-10 text-n-400 font-bold text-xs uppercase tracking-widest">
+            View Statement
+        </Button>
       </div>
     </div>
-  );
-}
-
-// --- Internal Components ---
-
-function InfoItem({ label, value, onCopy }) {
-  return (
-    <div className="space-y-1 group border-b border-white/10 pb-2">
-      <p className="text-[10px] uppercase font-bold text-n-300">{label}</p>
-      <div className="flex justify-between items-center">
-        <span className="font-mono text-sm tracking-wider">{value}</span>
-        <button onClick={() => onCopy(value)} className="p-1 hover:bg-white/10 rounded">
-          <Copy size={14} className="text-n-300" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function QuickAction({ icon, label, href = "#" }) {
-  return (
-    <Link href={href} className="flex flex-col items-center gap-2 group">
-      <div className="w-14 h-14 bg-white shadow-soft rounded-2xl flex items-center justify-center text-brand-blue group-hover:bg-brand-blue group-hover:text-white transition-all">
-        {icon}
-      </div>
-      <span className="text-xs font-bold text-n-700">{label}</span>
-    </Link>
-  );
-}
-
-function SummaryTile({ label, value, color }) {
-  return (
-    <div className="bg-n-100/50 p-4 rounded-brand-card border border-n-100">
-      <p className="text-[10px] uppercase font-bold text-n-500 mb-1">{label}</p>
-      <p className={`text-sm font-mono font-bold ${color}`}>{value}</p>
-    </div>
-  );
-}
-
-function TransactionItem({ title, date, amount, status, isPositive, isFX }) {
-  return (
-    <div className="flex justify-between items-center p-4 hover:bg-n-100/50 border-b border-n-100 last:border-none transition-colors cursor-pointer">
-      <div className="flex items-center gap-4">
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isFX ? 'bg-brand-blue/10 text-brand-blue' : 'bg-n-100 text-n-500'}`}>
-          {isFX ? <RefreshCcw size={18} /> : <Landmark size={18} />}
-        </div>
-        <div>
-          <p className="text-sm font-bold text-brand-dark">{title}</p>
-          <p className="text-[11px] text-n-500">{date} • {status}</p>
-        </div>
-      </div>
-      <div className="text-right">
-        <p className={`text-sm font-mono font-bold ${isPositive ? 'text-usd' : 'text-brand-dark'}`}>
-          {amount}
-        </p>
-      </div>
-    </div>
-  );
+  )
 }
