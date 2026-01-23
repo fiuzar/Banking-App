@@ -351,9 +351,9 @@ export default function Dashboard() {
           <ActionItem icon={<RefreshCw />} label={t.internal} url_link="/app/transfer/internal" />
           <ActionItem icon={<Bitcoin />} label={t.crypto} url_link="/app/crypto/buy" />
           <ActionItem icon={<FileText />} label={t.bills} url_link={`/app/bills`} />
-          <ActionItem icon={<UserPlus />} label={t.add} url_link={`/app/beneficiary/add`} />
+          <ActionItem icon={<UserPlus />} label={t.add} url_link={`/app/beneficiary`} />
           <ActionItem icon={<CreditCard />} label="Card Deposit" url_link={`/app/deposit/card`} />
-          <ActionItem icon={<Wallet />} label="Crypto Deposit" url_link={`/app/deposit/cryto`} />
+          <ActionItem icon={<Wallet />} label="Crypto Deposit" url_link={`/app/deposit/crypto`} />
           <ActionItem icon={<CheckSquare />} label="Check Deposit" url_link={`/app/deposit/check`} />
         </div>
       </div>
