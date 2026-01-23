@@ -4,6 +4,7 @@ import { signIn, auth } from "@/auth"
 import { query } from "@/dbh"
 import nodemailer from "nodemailer"
 import bcrypt from "bcryptjs"
+import { revalidatePath } from "next/cache";
 
 // --- GOOGLE ACTION ---
 export async function googleSignIn() {
@@ -160,4 +161,54 @@ export async function getCurrentUser(user_id) {
         console.error("Get current user error:", e);
         return {};
     }
+}
+
+// --- PROFILE UPDATE & KYC SUBMISSION ---
+export async function updateProfile(formData) {
+  const first_name = formData.get('first_name').trim()
+  const last_name = formData.get('last_name').trim()
+  const phone = formData.get('phone')
+
+  const session = await auth()
+  const user = session?.user?.id
+
+  if (!user) {
+    return { success: false, message: 'User not authenticated, login to fix issue' }
+  }
+
+  if (!first_name || !last_name) {
+    return { success: false, message: 'First and last name are required' }
+    }
+
+    try {
+        const update_text = await query(
+            "UPDATE paysense_users SET first_name = $1, last_name = $2, phone = $3 WHERE id = $4 RETURNING id, first_name, last_name, phone, email, verified, profile_img",
+            [first_name, last_name, phone, user]
+        );
+
+        if (update_text.rowCount === 0) {
+            return { success: false, message: 'Database update failed' }
+        }
+        return { success: true, user: update_text.rows[0] }
+
+    }
+    catch(err){
+        return { success: false, message: 'Database update failed' }
+    }
+
+  // LOGIC: Here you would use Prisma/Supabase to update the DB
+  console.log("Updating DB with:", { name, phone })
+
+  // Refresh the page data
+  revalidatePath('/app/settings')
+  return { success: true }
+}
+
+export async function submitKYC(formData) {
+  const idType = formData.get('idType')
+  // LOGIC: Handle document upload/verification
+  console.log("KYC Submitted for type:", idType)
+  
+  revalidatePath('/app/settings')
+  return { success: true, status: 'pending' }
 }

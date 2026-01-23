@@ -71,7 +71,7 @@ export function LoginForm({ className, ...props }) {
                         <div className="text-center text-sm mt-1">
                                 Don&apos;t have an account?{" "}
                                 <Link href="/register" className="underline underline-offset-4">
-                                    Sign In
+                                    Sign Up
                                 </Link>
                             </div>
                     </div>

@@ -89,7 +89,7 @@ export function RegisterForm({ className, ...props }) {
                         </Button>
                     </div>
                     <div className="text-center text-sm mt-7">
-                                Don&apos;t have an account?{" "}
+                                Already have an account?{" "}
                                 <Link href="/login" className="underline underline-offset-4">
                                     Sign In
                                 </Link>
