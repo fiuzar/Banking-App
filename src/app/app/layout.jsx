@@ -57,13 +57,12 @@ export default function Layout({ children }) {
                 <MobileNavItem href="/app/notifications" icon={<Bell size={22} />} label="Alerts" />
                 <MobileNavItem href="/app" icon={<Home size={22} />} label="Home" active={pathname === '/app'} />
                 <MobileNavItem href="/app/support" icon={<MessageSquare size={22} />} label="Support" />
-                <MobileNavItem href="/logout" icon={<LogOut size={22} />} label="Exit" />
-                <Link href={href} className={`flex flex-col items-center gap-1 transition-colors ${active ? 'text-primary' : 'text-n-500'}`}>
-                  {icon}
-                  <span className="text-[10px] font-bold uppercase tracking-widest">{label}</span>
-                </Link>
+                <Button variant="ghost" className={`flex flex-col text-red-700 items-center gap-1 transition-colors `} onClick={() => signOut()}>
+                  <LogOut size={22} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Exit</span>
+                </Button>
               </div>
-            </nav>hdfgfaefhgfvydfhffv grebfdgesrfyrfghrf yteeygefyffuferfy fg
+            </nav>
           </div>
         </div>
       </UserContext.Provider>
