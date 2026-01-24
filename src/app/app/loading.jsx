@@ -1,24 +1,24 @@
-// app/dashboard/loading.tsx
+import { Loader2 } from "lucide-react";
+
 export default function Loading() {
   return (
-    <div className="space-y-8 animate-pulse">
-      {/* Wallet Card Skeleton */}
-      <div className="h-[200px] w-full max-w-md bg-n-300/30 rounded-brand-card" />
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-slate-50/50 backdrop-blur-sm z-50">
+      <div className="relative flex items-center justify-center">
+        {/* Outer subtle ring */}
+        <div className="absolute w-16 h-16 border-4 border-primary/10 rounded-full"></div>
+        
+        {/* The Spinning Icon */}
+        <Loader2 
+          className="text-primary animate-spin" 
+          size={40} 
+          strokeWidth={2.5} 
+        />
+      </div>
       
-      {/* Action Buttons Skeleton */}
-      <div className="flex gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-12 w-24 bg-n-300/20 rounded-brand-button" />
-        ))}
-      </div>
-
-      {/* Transaction List Skeleton */}
-      <div className="space-y-4">
-        <div className="h-6 w-32 bg-n-300/20 rounded" />
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-16 w-full bg-white border border-n-300 rounded-brand-card" />
-        ))}
-      </div>
+      {/* Optional Brand Text */}
+      <p className="mt-4 text-xs font-bold text-n-400 uppercase tracking-[0.2em] animate-pulse">
+        Securing Connection...
+      </p>
     </div>
   );
 }

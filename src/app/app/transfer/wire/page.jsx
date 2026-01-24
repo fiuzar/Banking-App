@@ -16,7 +16,8 @@ export default function WireTransferPage() {
     bankName: "",
     accountNumber: "",
     routingNumber: "",
-    amount: ""
+    amount: "",
+    pin: ""
   })
 
   const nextStep = () => setStep(s => s + 1)
@@ -35,7 +36,7 @@ export default function WireTransferPage() {
       <div className="max-w-md mx-auto p-6">
         {/* Progress Indicator */}
         <div className="flex justify-between mb-8 px-2">
-          {[1, 2, 3].map((s) => (
+          {[1, 2, 3, 4].map((s) => (
             <div key={s} className={`h-1 flex-1 mx-1 rounded-full ${step >= s ? 'bg-primary' : 'bg-n-300'}`} />
           ))}
         </div>
@@ -43,7 +44,8 @@ export default function WireTransferPage() {
         {step === 1 && <StepSource formData={formData} setFormData={setFormData} onNext={nextStep} />}
         {step === 2 && <StepRecipient formData={formData} setFormData={setFormData} onNext={nextStep} onBack={prevStep} />}
         {step === 3 && <StepAmount formData={formData} setFormData={setFormData} onNext={nextStep} onBack={prevStep} />}
-        {step === 4 && <StepSuccess />}
+        {step === 4 && <StepAuth formData={formData} setFormData={setFormData} onNext={nextStep} onBack={prevStep} />}
+        {step === 5 && <StepSuccess />}
       </div>
     </div>
   )
@@ -133,6 +135,72 @@ function StepAmount({ formData, setFormData, onNext, onBack }) {
       <Button onClick={onNext} className="btn-primary w-full h-14 text-lg">Send Wire Now</Button>
       <button onClick={onBack} className="w-full text-n-500 text-sm font-medium">Go Back</button>
     </div>
+  )
+}
+
+function StepAuth({ formData, setFormData, onNext, onBack }) {
+  const [error, setError] = useState("")
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (!formData.pin || formData.pin.length < 4) {
+      setError("Please enter your 4-digit PIN.")
+      return
+    }
+    setError("")
+    onNext()
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in slide-in-from-right-4">
+      <h2 className="text-lg font-bold text-brand-dark text-center">Authenticate Transaction</h2>
+      {/* Mini transaction receipt */}
+      <div className="bg-n-100 rounded-xl p-4 mb-2 text-sm">
+        <div className="flex justify-between mb-1">
+          <span className="text-n-500">To</span>
+          <span className="font-semibold">{formData.recipientName || <span className="text-n-300">Recipient</span>}</span>
+        </div>
+        <div className="flex justify-between mb-1">
+          <span className="text-n-500">Bank</span>
+          <span>{formData.bankName || <span className="text-n-300">Bank Name</span>}</span>
+        </div>
+        <div className="flex justify-between mb-1">
+          <span className="text-n-500">Account #</span>
+          <span>{formData.accountNumber || <span className="text-n-300">••••••••</span>}</span>
+        </div>
+        <div className="flex justify-between mb-1">
+          <span className="text-n-500">Routing #</span>
+          <span>{formData.routingNumber || <span className="text-n-300">•••••••••</span>}</span>
+        </div>
+        <div className="flex justify-between mt-2">
+          <span className="text-n-500">Amount</span>
+          <span className="font-bold text-primary">${formData.amount || "0.00"}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-n-500">Fee</span>
+          <span className="font-bold">$25.00</span>
+        </div>
+      </div>
+      {/* PIN input */}
+      <div className="grid gap-2">
+        <Label htmlFor="pin">Enter your PIN</Label>
+        <Input
+          id="pin"
+          type="password"
+          inputMode="numeric"
+          maxLength={6}
+          minLength={4}
+          autoComplete="off"
+          className="h-12 text-center text-xl tracking-widest"
+          placeholder="••••"
+          value={formData.pin}
+          onChange={e => setFormData({ ...formData, pin: e.target.value.replace(/\D/g, '') })}
+        />
+        {error && <span className="text-red-500 text-xs mt-1">{error}</span>}
+      </div>
+      <Button type="submit" className="btn-primary w-full h-14 text-lg mt-2">Confirm & Send</Button>
+      <button type="button" onClick={onBack} className="w-full text-n-500 text-sm font-medium">Go Back</button>
+    </form>
   )
 }
 
