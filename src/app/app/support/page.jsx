@@ -21,27 +21,26 @@ import { useSearchParams } from "next/navigation"
 export default function SupportPage() {
     const { data: session } = useSession();
     const searchParams = useSearchParams();
-    
+
     // Check if user is currently searching
     const isSearching = !!searchParams.get('q');
-    
+
     const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
 
     const handleChatStart = () => {
         if (window.Tawk_API) {
-            // If offline, Tawk automatically shows the Email/Ticket form
-            // If online, it starts a live session
-            window.Tawk_API.maximize();
+            // Force the widget to show and then expand it
             window.Tawk_API.showWidget();
+            window.Tawk_API.maximize();
         }
     };
 
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Load Tawk Script & Identify User */}
-            <TawkChat 
-                name={session?.user?.name || ""} 
-                email={session?.user?.email || ""} 
+            <TawkChat
+                name={session?.user?.name || ""}
+                email={session?.user?.email || ""}
             />
 
             {/* Header */}
@@ -66,9 +65,11 @@ export default function SupportPage() {
                         <SupportCard
                             icon={<MessageCircle className="text-primary" />}
                             title="Live Chat"
-                            desc="Average wait: 2 mins"
-                            action="Start Chat"
+                            // Dynamic description based on agent status
+                            desc={isOnline ? "Agents are online" : "Agents are away (Leave a message)"}
+                            action={isOnline ? "Start Chat" : "Send Ticket"}
                             onClick={handleChatStart}
+                            isOnline={isOnline} // Pass this to show a green dot
                         />
                         <div className="grid grid-cols-2 gap-3">
                             <SmallSupportCard
