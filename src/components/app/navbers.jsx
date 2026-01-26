@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useContext, useState, useEffect, use } from "react";
-import { UserContext } from "@/server-functions/contexts";
+import { UserContext, AccountDetailsContext } from "@/server-functions/contexts";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,7 @@ export function DesktopNaBar() {
     const { data: session } = useSession();
     const user_id = session?.user?.id;
     const { user, setUser } = useContext(UserContext);
+    const { accountDetails, setAccountDetails } = useContext(AccountDetailsContext)
     const pathname = usePathname()
     const [lang, setLang] = useState("en")
 
@@ -30,8 +31,12 @@ export function DesktopNaBar() {
         async function fetchUser() {
             if (!user_id) return;
 
-            const userData = await getCurrentUser(user_id);
-            setUser(userData);
+            const { success, user_details, account_details } = await getCurrentUser(user_id);
+
+            if (success) {
+                setUser(user_details)
+                setAccountDetails(account_details)
+            }
         }
 
         fetchUser();
@@ -61,7 +66,7 @@ export function DesktopNaBar() {
 
 export function MobileNavBar() {
     const pathname = usePathname()
-    
+
     return (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border px-4 py-3 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
             <div className="flex justify-between items-center max-w-md mx-auto">
@@ -86,10 +91,18 @@ function DesktopNavItem({ href, icon, label, active }) {
     )
 }
 
-function MobileNavItem({ href, icon, label, active }) {
+function MobileNavItem({ href, icon, label, active, badgeCount }) {
     return (
-        <Link href={href} className={`flex flex-col items-center gap-1 transition-colors ${active ? 'text-primary' : 'text-n-500'}`}>
-            {icon}
+        <Link href={href} className={`flex flex-col items-center gap-1 relative transition-colors ${active ? 'text-primary' : 'text-n-500'}`}>
+            <div className="relative">
+                {icon}
+                {/* The Red Dot Badge */}
+                {badgeCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white animate-in zoom-in">
+                        {badgeCount > 9 ? '9+' : badgeCount}
+                    </span>
+                )}
+            </div>
             <span className="text-[10px] font-bold uppercase tracking-widest">{label}</span>
         </Link>
     )

@@ -153,31 +153,41 @@ async function create_otp(email) {
 }
 
 // --- GET CURRENT USER ---
-export async function getCurrentUser(user_id) {
+export async function getCurrentUser() {
+    const session = await auth;
+    const user_id = session?.user?.id
+
+    if (!user_id) {
+        return { success: false, message: "Session not found, login in to fix issue" }
+    }
+
     try {
-        const { rows } = await query("SELECT id, first_name, last_name, email FROM paysense_users WHERE id = $1", [user_id]);
-        return rows[0] || null;
+        const { rows: user_details } = await query("SELECT id, first_name, last_name, email FROM paysense_users WHERE id = $1", [user_id]);
+        const { rows: account_details } = await query("SELECT id, checking_balance, savings_balance FROM paysense_account_details WHERE id = $1")
+
+        return { success: true, user_details, account_details }
+
     } catch (e) {
         console.error("Get current user error:", e);
-        return {};
+        return { success: false, message: "no" };
     }
 }
 
 // --- PROFILE UPDATE & KYC SUBMISSION ---
 export async function updateProfile(formData) {
-  const first_name = formData.get('first_name').trim()
-  const last_name = formData.get('last_name').trim()
-  const phone = formData.get('phone')
+    const first_name = formData.get('first_name').trim()
+    const last_name = formData.get('last_name').trim()
+    const phone = formData.get('phone')
 
-  const session = await auth()
-  const user = session?.user?.id
+    const session = await auth()
+    const user = session?.user?.id
 
-  if (!user) {
-    return { success: false, message: 'User not authenticated, login to fix issue' }
-  }
+    if (!user) {
+        return { success: false, message: 'User not authenticated, login to fix issue' }
+    }
 
-  if (!first_name || !last_name) {
-    return { success: false, message: 'First and last name are required' }
+    if (!first_name || !last_name) {
+        return { success: false, message: 'First and last name are required' }
     }
 
     try {
@@ -192,23 +202,23 @@ export async function updateProfile(formData) {
         return { success: true, user: update_text.rows[0] }
 
     }
-    catch(err){
+    catch (err) {
         return { success: false, message: 'Database update failed' }
     }
 
-  // LOGIC: Here you would use Prisma/Supabase to update the DB
-  console.log("Updating DB with:", { name, phone })
+    // LOGIC: Here you would use Prisma/Supabase to update the DB
+    console.log("Updating DB with:", { name, phone })
 
-  // Refresh the page data
-  revalidatePath('/app/settings')
-  return { success: true }
+    // Refresh the page data
+    revalidatePath('/app/settings')
+    return { success: true }
 }
 
 export async function submitKYC(formData) {
-  const idType = formData.get('idType')
-  // LOGIC: Handle document upload/verification
-  console.log("KYC Submitted for type:", idType)
-  
-  revalidatePath('/app/settings')
-  return { success: true, status: 'pending' }
+    const idType = formData.get('idType')
+    // LOGIC: Handle document upload/verification
+    console.log("KYC Submitted for type:", idType)
+
+    revalidatePath('/app/settings')
+    return { success: true, status: 'pending' }
 }
