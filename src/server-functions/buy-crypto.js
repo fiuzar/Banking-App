@@ -1,11 +1,9 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { Pool } from 'pg'
+import {query} from "@/dbh"
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL })
-
-export async function processBuyCrypto(formData: FormData) {
+export async function processBuyCrypto(formData) {
   const usdAmount = parseFloat(formData.get('amount') as string)
   const asset = formData.get('asset') as string // e.g., 'BTC', 'ETH'
   const userId = "user_123"
