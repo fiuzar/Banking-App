@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { UserProfileSettings } from "@/components/app/user_setings"
+import { signOut } from "next-auth/react"
 
 // --- ADD: Backend update function ---
 async function updateUserLocale(locale) {
@@ -130,7 +131,8 @@ export default function AccountManagement() {
                 </div>
 
                 <div className="flex items-center justify-center gap-2 mt-4">
-                    <h1 className="text-2xl font-black">{`${user?.first_name ?? ""} ${user?.last_name ?? ""}`}</h1>
+                    {/* {JSON.stringify(user)} */}
+                    <h1 className="text-2xl font-semibold font-black">{`${user?.first_name ?? ""} ${user?.last_name ?? ""}`}</h1>
                     
                     {/* 2. DYNAMIC BADGE: Only show blue check if status is strictly 'verified' */}
                     {kycStatus === 'verified' && (
@@ -289,9 +291,9 @@ export default function AccountManagement() {
                 </div>
 
                 {/* Logout Button */}
-                <Button variant="ghost" className="w-full h-14 text-red-500 font-bold flex gap-2 hover:bg-red-50 hover:text-red-600 rounded-2xl">
+                {/* <Button onClick={signOut()} variant="ghost" className="w-full h-14 text-red-500 font-bold flex gap-2 hover:bg-red-50 hover:text-red-600 rounded-2xl">
                     <LogOut size={20} /> Sign Out
-                </Button>
+                </Button> */}
             </div>
 
             {/* Edit Profile Overlay */}

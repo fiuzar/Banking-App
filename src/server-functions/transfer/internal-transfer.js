@@ -7,7 +7,7 @@ export async function internalTransfer(transfer_amount, from_account) {
     const session = await auth()
     const userId = session?.user?.id
 
-    if(!userId) {
+    if (!userId) {
         return { success: false, error: "Session not found, Login to fix issue" }
     }
 
@@ -28,42 +28,56 @@ export async function internalTransfer(transfer_amount, from_account) {
 
         // 2. CHECK SUFFICIENT BALANCE
         const balanceRes = await query(
-            `SELECT ${fromColumn} FROM users WHERE id = $1 FOR UPDATE`,
+            `SELECT ${fromColumn} FROM paysense_accounts WHERE id = $1 FOR UPDATE`,
             [userId]
         )
+
+        if (!balanceRes.rows || !balanceRes.rows[0]) {
+            await query('ROLLBACK')
+            return { success: false, error: "Account not found" }
+        }
 
         const currentBalance = balanceRes.rows[0][fromColumn]
 
         if (currentBalance < amount) {
-            throw new Error("Insufficient funds")
+            await query('ROLLBACK')
+            return { success: false, error: "Insufficient funds" }
         }
 
         // 3. DEBIT FROM SOURCE
         await query(
-            `UPDATE users SET ${fromColumn} = ${fromColumn} - $1 WHERE id = $2`,
+            `UPDATE paysense_accounts SET ${fromColumn} = ${fromColumn} - $1 WHERE id = $2`,
             [amount, userId]
         )
 
         // 4. CREDIT TO DESTINATION
-        await query(
-            `UPDATE users SET ${toColumn} = ${toColumn} + $1 WHERE id = $2`,
+        const { rows: account_details } = await query(
+            `UPDATE paysense_accounts SET ${toColumn} = ${toColumn} + $1 WHERE id = $2 returning id, ${toColumn}, ${fromColumn}`,
             [amount, userId]
         )
 
+        if (!account_details || !account_details[0]) {
+            await query('ROLLBACK')
+            return { success: false, error: "Account update failed" }
+        }
+
         // 5. LOG THE TRANSACTION (Optional but recommended)
         await query(
-            `INSERT INTO transactions (user_id, amount, type, description, status) VALUES ($1, $2, 'internal_transfer', $3, 'completed')`,
+            `INSERT INTO paysense_transactions (user_id, amount, type, description, status) VALUES ($1, $2, 'internal_transfer', $3, 'completed')`,
             [userId, amount, `Transfer from ${from_account} to ${toAccount}`]
         )
 
         // 6. COMMIT TRANSACTION
         await query('COMMIT')
 
-        return { success: true }
+        console.log("Internal Transfer Successful")
+
+        return { success: true, account_details: account_details[0] }
 
     } catch (error) {
         // 7. ROLLBACK ON ERROR
         await query('ROLLBACK')
-        return { success: false, error: error.message }
-    } 
+        console.log("Internal Transfer Error:", error)
+        return { success: false, error: error.message || "Conversion Failed please try again later" }
+    }
 }

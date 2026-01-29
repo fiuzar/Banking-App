@@ -20,6 +20,7 @@ export function DesktopNaBar() {
     const pathname = usePathname()
     const [lang, setLang] = useState("en")
 
+
     useEffect(() => {
         // Auto-detect browser language
         const browserLang = navigator.language.split('-')[0]
@@ -31,11 +32,11 @@ export function DesktopNaBar() {
         async function fetchUser() {
             if (!user_id) return;
 
-            const { success, user_details, account_details } = await getCurrentUser(user_id);
+            const { success, user_details, account_details } = await getCurrentUser();
 
             if (success) {
-                setUser(user_details)
-                setAccountDetails(account_details)
+                setUser(user_details[0])
+                setAccountDetails(account_details[0])
             }
         }
 

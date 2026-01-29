@@ -24,6 +24,7 @@ export default function SupportPage() {
 
     // Check if user is currently searching
     const isSearching = !!searchParams.get('q');
+    const [isOnline, setIsOnline] = useState(true); // Placeholder for agent status
 
     const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
 
@@ -90,7 +91,7 @@ export default function SupportPage() {
                 <PopularTopics />
 
                 {/* 3. Ticket Section - HIDE WHEN SEARCHING */}
-                {!isSearching && (
+                {/* {!isSearching && (
                     <div
                         onClick={() => setIsTicketModalOpen(true)}
                         className="p-5 bg-white rounded-[24px] border border-slate-100 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-all shadow-sm active:scale-95"
@@ -106,7 +107,7 @@ export default function SupportPage() {
                         </div>
                         <ChevronRight size={18} className="text-n-300" />
                     </div>
-                )}
+                )} */}
 
                 <CreateTicketModal
                     isOpen={isTicketModalOpen}

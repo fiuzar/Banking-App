@@ -1,14 +1,23 @@
+'use client'
+
 import { updateProfile } from "@/server-functions/authentication"
-import { useState } from "react"
+import { useState, useContext } from "react"
+import { UserContext } from "@/server-functions/contexts"
 import { Button } from "../ui/button"
+import { set } from "date-fns"
 
 export function UserProfileSettings({ user, setIsEditing }) {
+    const {setUser} = useContext(UserContext);
     return (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end justify-center">
             <div className="bg-white pb-20 lg:pb-2 w-full max-w-md rounded-t-[32px] p-8 animate-in slide-in-from-bottom-full duration-300">
                 <h3 className="text-xl font-black text-brand-dark mb-6">Edit Profile</h3>
                 <form action={async (formData) => {
-                    await updateProfile(formData);
+                    const {success, message, user} = await updateProfile(formData);
+                    if (!success) {
+                        return;
+                    }
+                    setUser(user);
                     setIsEditing(false);
                 }} className="space-y-4">
                     <div>

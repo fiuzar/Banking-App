@@ -1,21 +1,23 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useContext, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, ArrowUpDown } from "lucide-react"
 import { SuccessState, FailureState, AccountBox } from "@/components/app/transfer-success-receipt"
 import Link from "next/link"
 import { internalTransfer } from "@/server-functions/transfer/internal-transfer"
+import { AccountDetailsContext } from "@/server-functions/contexts"
 
 export default function InternalTransfer() {
+	const { accountDetails, setAccountDetails } = useContext(AccountDetailsContext)
 	const [isSavingsToChecking, setIsSavingsToChecking] = useState(true)
 	const [amount, setAmount] = useState("")
 	const [result, setResult] = useState(null)
 	const [loading, setLoading] = useState(false)
 
 	const accountData = {
-		savings: { label: "USD Savings", balance: "$5,010,876.00" },
-		checking: { label: "USD Checking", balance: "$12,450.00" }
+		savings: { label: "USD Savings", balance: parseFloat(accountDetails?.savings_balance || 0).toLocaleString("en-US", { style: "currency", currency: "USD" }) },
+		checking: { label: "USD Checking", balance: parseFloat(accountDetails?.checking_balance || 0).toLocaleString("en-US", { style: "currency", currency: "USD" }) }
 	}
 
 	const handleTransfer = async () => {
@@ -35,10 +37,11 @@ export default function InternalTransfer() {
 	}
 
 	if (result?.success) {
+		setAccountDetails(result.account_details)
 		return <SuccessState details={result.details} />
 	}
 	if (result && !result.success) {
-		return <FailureState error={result.error} details={result.details} />
+		return <FailureState error={result.error} details={result.details} setResult={setResult} />
 	}
 
 	return (

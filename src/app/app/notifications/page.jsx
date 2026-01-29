@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from "react"
 import {
 	ArrowLeft,
 	Bell,
@@ -19,6 +18,7 @@ import { get_notification_list, mark_notification_read, clear_notification_histo
 export default function NotificationsPage() {
 	const [notifications, setNotifications] = useState([])
 	const [loading, setLoading] = useState(true)
+	const [showModal, setShowModal] = useState(false)
 
 	// 1. Fetch data on load
 	useEffect(() => {
@@ -31,13 +31,24 @@ export default function NotificationsPage() {
 	}, [])
 
 	const handleClearHistory = async () => {
-		if (confirm("Are you sure you want to clear all alerts?")) {
-			const res = await clear_notification_history()
-			if (res.success) setNotifications([])
-		}
+		setShowModal(true)
 	}
 
-	if (loading) return <div className="p-20 text-center font-bold text-n-400">Loading alerts...</div>
+	const confirmClearHistory = async () => {
+		const res = await clear_notification_history()
+		if (res.success) setNotifications([])
+		setShowModal(false)
+	}
+
+	const cancelClearHistory = () => {
+		setShowModal(false)
+	}
+
+	async function handleMarkAllRead(){
+		const res = await mark_notification_read()
+		if(res.success){
+		}
+	}
 
 	// const [notifications, setNotifications] = useState([
 	//   {
@@ -74,7 +85,8 @@ export default function NotificationsPage() {
 		// When the user opens this page, mark all as read automatically
 		const clearBadge = async () => {
 			await mark_notification_read(); // Server Action
-			setUnreadCount(0); // Update Context locally for instant UI response
+			// setUnreadCount(0); // Update Context locally for instant UI response
+			// ^^^ Commented out because setUnreadCount is not defined in this file.
 		};
 
 		if (notifications.some(n => !n.is_read)) {
@@ -82,8 +94,23 @@ export default function NotificationsPage() {
 		}
 	}, [notifications]);
 
+	if (loading) return <div className="p-20 text-center font-bold text-n-400">Loading alerts...</div>
+
 	return (
 		<div className="min-h-screen bg-white">
+			{/* Modal for clear notification history */}
+			{showModal && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+					<div className="bg-white rounded-2xl shadow-lg p-6 max-w-xs w-full">
+						<h2 className="font-bold text-lg mb-2">Clear all alerts?</h2>
+						<p className="text-sm text-n-500 mb-6">Are you sure you want to clear all alerts? This action cannot be undone.</p>
+						<div className="flex gap-2 justify-end">
+							<Button variant="ghost" onClick={cancelClearHistory}>Cancel</Button>
+							<Button variant="destructive" onClick={confirmClearHistory}>Yes, clear</Button>
+						</div>
+					</div>
+				</div>
+			)}
 			{/* Header */}
 			<div className="p-6 flex items-center justify-between border-b border-slate-100">
 				<div className="flex items-center gap-4">

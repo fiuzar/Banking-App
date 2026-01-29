@@ -154,7 +154,7 @@ async function create_otp(email) {
 
 // --- GET CURRENT USER ---
 export async function getCurrentUser() {
-    const session = await auth;
+    const session = await auth();
     const user_id = session?.user?.id
 
     if (!user_id) {
@@ -162,10 +162,14 @@ export async function getCurrentUser() {
     }
 
     try {
-        const { rows: user_details } = await query("SELECT id, first_name, last_name, email FROM paysense_users WHERE id = $1", [user_id]);
-        const { rows: account_details } = await query("SELECT id, checking_balance, savings_balance FROM paysense_account_details WHERE id = $1")
+        const { rows: user_details } = await query("SELECT id, first_name, last_name, email, phone, image FROM paysense_users WHERE id = $1", [user_id]);
+        const { rows: account_details } = await query("SELECT id, checking_balance, savings_balance FROM paysense_accounts WHERE id = $1", [user_id]);
 
-        return { success: true, user_details, account_details }
+        if(!account_details[0]){
+            const insert_account_details = await query("INSERT INTO paysense_accounts (id, checking_balance, savings_balance) VALUES ($1, $2, $3) returning id, checking_balance, savings_balance", [user_id, 0.00, 0.00])
+            return { success: true, user_details, account_details: insert_account_details.rows };
+        }
+        return { success: true, user_details, account_details };
 
     } catch (e) {
         console.error("Get current user error:", e);
@@ -192,17 +196,19 @@ export async function updateProfile(formData) {
 
     try {
         const update_text = await query(
-            "UPDATE paysense_users SET first_name = $1, last_name = $2, phone = $3 WHERE id = $4 RETURNING id, first_name, last_name, phone, email, verified, profile_img",
+            "UPDATE paysense_users SET first_name = $1, last_name = $2, phone = $3 WHERE id = $4 RETURNING id, first_name, last_name, phone, email, verified, image",
             [first_name, last_name, phone, user]
         );
 
         if (update_text.rowCount === 0) {
-            return { success: false, message: 'Database update failed' }
+            return { success: false, message: 'Profile update failed' }
         }
+        console.log("Updated user:", update_text.rows[0])
         return { success: true, user: update_text.rows[0] }
 
     }
     catch (err) {
+    console.log(err)
         return { success: false, message: 'Database update failed' }
     }
 

@@ -21,7 +21,7 @@ export function SuccessState() {
     )
 }
 
-export function FailureState() {
+export function FailureState({error, details, setResult}) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-6 animate-in zoom-in-95">
         <div className="w-20 h-20 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center">
@@ -31,11 +31,11 @@ export function FailureState() {
         </div>
         <div>
           <h2 className="text-2xl font-black text-brand-dark">Transfer Failed</h2>
-            <p className="text-n-500 mt-2">There was an issue processing your transfer. Please try again later.</p>
+            <p className="text-n-500 mt-2">{error|| `There was an issue processing your transfer. Please try again later.`}</p>
         </div>
-        <Link href="/app/transfer/internal" className="w-full max-w-xs">
-          <Button variant="outline" className="w-full h-12 border-red-500 text-red-500 font-bold">Try Again</Button>
-        </Link>
+        {/* <Link href="/app/transfer/internal" className="w-full max-w-xs"> */}
+          <Button onClick={() => setResult(null)} variant="outline" className="w-full h-12 border-red-500 text-red-500 font-bold">Try Again</Button>
+        {/* </Link> */}
       </div>
     )
 }

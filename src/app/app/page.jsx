@@ -16,11 +16,28 @@ export default function Dashboard() {
 	const { user, setUser } = useContext(UserContext)
 	const { t, i18n } = useTranslation()
 	const [currentCard, setCurrentCard] = useState(0)
+	const formatAmount = (amount) => {
+		const num = parseFloat(amount)
+		return isNaN(num) ? "0.00" : num.toFixed(2)
+	}
+
 	const accountCards = [
-		{ title: t("savings", "SAVINGS"), amount: `$${parseFloat(accountDetails.savings_balance) || "0.00"}`, acc: ".... 6708", color: "from-green-800 to-green-950" },
-		{ title: t("checking", "CHECKING"), amount: `$${parseFloat(accountDetails.checking_balance) || "0.00"}`, acc: ".... 1234", color: "from-green-800 to-slate-950" },
-		{ isVirtual: true }
-	]
+    { 
+        type: "savings",
+        title: t("savings", "SAVINGS"), 
+        amount: `$${formatAmount(accountDetails?.savings_balance)}`, 
+        acc: ".... 6708", 
+        color: "from-green-800 to-green-950" 
+    },
+    { 
+        type: "checking",
+        title: t("checking", "CHECKING"), 
+        amount: `$${formatAmount(accountDetails?.checking_balance)}`, 
+        acc: ".... 1234", 
+        color: "from-green-800 to-slate-950" 
+    },
+    { isVirtual: true }
+]
 	const cardsContainerRef = useRef(null)
 	const autoSwitchInterval = 4000 // ms
 
@@ -114,10 +131,10 @@ export default function Dashboard() {
 			{/* SLIDABLE ACCOUNTS SECTION */}
 			<div className="bg-green-900 pt-2 pb-12 px-4 md:py-16">
 				<div
-					className="max-w-6xl mx-auto flex md:grid md:grid-cols-2 lg:grid-cols-3 overflow-x-auto snap-x snap-mandatory gap-4 no-scrollbar"
-					ref={cardsContainerRef}
-					onScroll={handleScroll}
-				>
+    className="max-w-6xl mx-auto flex md:grid md:grid-cols-2 lg:grid-cols-3 overflow-x-auto snap-x snap-mandatory gap-4 no-scrollbar"
+    ref={cardsContainerRef}
+    onScroll={handleScroll}
+>
 					<AccountCard {...accountCards[0]} />
 					<AccountCard {...accountCards[1]} />
 					<Card className="bg-slate-900 text-white overflow-hidden relative border-none min-w-19/20 md:min-w-full snap-center">
@@ -154,6 +171,7 @@ export default function Dashboard() {
 
 			{/* 3x3 QUICK ACTIONS GRID */}
 			<div className="max-w-4xl mx-auto bg-white rounded-t-[40px] md:rounded-[40px] -mt-8 p-8 md:mt-8 md:shadow-xl border border-gray-100">
+				{/* Display Account Details */}
 				<h3 className="text-gray-400 text-[10px] font-bold tracking-widest uppercase mb-8 text-center md:text-left">{t("quick_services", "Quick Services")}</h3>
 				<div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-y-10 gap-x-4">
 					<ActionItem icon={<ArrowUpRight />} label={t('wire', 'Wire Transfer')} url_link="/app/transfer/wire" />
@@ -171,31 +189,34 @@ export default function Dashboard() {
 	)
 }
 
-function AccountCard({ title, amount, acc, color }) {
-	return (
-		<Card className={`min-w-19/20 md:min-w-full snap-center bg-linear-to-br ${color} border-white/10 text-white p-7 shadow-2xl relative overflow-hidden`}>
-			<div className="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full blur-2xl" />
-			<p className="text-[10px] tracking-[0.2em] font-bold opacity-50 mb-2">{title}</p>
-			<h1 className="text-3xl md:text-4xl font-bold tracking-tighter mb-8">{amount}</h1>
+function AccountCard({ title, amount, acc, color, type }) {
+  return (
+    <Card className={`min-w-[95%] md:min-w-full snap-center bg-gradient-to-br ${color} border-white/10 text-white p-7 shadow-2xl relative overflow-hidden`}>
+      <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full blur-2xl" />
+      <p className="text-[10px] tracking-[0.2em] font-bold opacity-50 mb-2">{title}</p>
+      <h1 className="text-3xl md:text-4xl font-bold tracking-tighter mb-8">{amount}</h1>
 
-			<div className="flex justify-between items-end">
-				<div>
-					<p className="text-[9px] opacity-40 uppercase font-bold mb-1">Account Number</p>
-					<p className="font-mono text-sm tracking-widest">{acc}</p>
-				</div>
-				<div className="flex gap-6 text-right">
-					{/* <div>
-						<p className="text-[8px] opacity-40 uppercase font-bold">Credit</p>
-						<p className="text-xs font-semibold">$0.00</p>
-					</div>
-					<div>
-						<p className="text-[8px] opacity-40 uppercase font-bold">Debit</p>
-						<p className="text-xs font-semibold">$0.00</p>
-					</div> */}
-				</div>
-			</div>
-		</Card>
-	)
+      <div className="flex justify-between items-end">
+        <div>
+          <p className="text-[9px] opacity-40 uppercase font-bold mb-1">Account Number</p>
+          <p className="font-mono text-sm tracking-widest">{acc}</p>
+        </div>
+        
+        {/* NEW ADD MONEY BUTTON */}
+        <Link href={`/app/accounts/${type}`}>
+          <Button 
+            size="sm" 
+            className="bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[10px] font-bold rounded-xl px-4 h-9 backdrop-blur-md transition-all active:scale-95 flex items-center gap-2"
+          >
+            <div className="w-4 h-4 bg-white text-green-900 rounded-full flex items-center justify-center font-black text-xs">
+              +
+            </div>
+            ADD MONEY
+          </Button>
+        </Link>
+      </div>
+    </Card>
+  )
 }
 
 function ActionItem({ icon, label, url_link }) {

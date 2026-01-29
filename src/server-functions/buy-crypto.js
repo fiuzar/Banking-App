@@ -70,3 +70,29 @@ export async function processBuyCrypto(formData: FormData) {
     client.release()
   }
 }
+
+export async function getCryptoRate(symbol) {
+    if (!symbol) return { error: "Symbol is required" };
+
+    try {
+        const response = await fetch(`https://api.cryptomus.com/v1/exchange-rate/${symbol.toUpperCase()}/list`, {
+            next: { revalidate: 10 } // Optional: Cache for 10 seconds to save API calls
+        });
+
+        if (!response.ok) throw new Error("Cryptomus API unreachable");
+
+        const data = await response.json();
+
+        // Professional touch: Find the USD rate specifically before returning
+        // This saves the frontend from having to loop through the array
+        const usdRate = data.result?.find(r => r.to === 'USD');
+
+        return { 
+            success: true, 
+            rate: usdRate ? parseFloat(usdRate.course) : null 
+        };
+    } catch (error) {
+        console.error("Crypto Rate Error:", error);
+        return { success: false, error: error.message };
+    }
+}
