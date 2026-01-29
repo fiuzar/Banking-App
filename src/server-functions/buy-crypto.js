@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import {query} from "@/dbh"
 
 export async function processBuyCrypto(formData) {
-  const usdAmount = parseFloat(formData.get('amount') as string)
+  const usdAmount = parseFloat(formData.get('amount'))
   const asset = formData.get('asset') as string // e.g., 'BTC', 'ETH'
   const userId = "user_123"
 
