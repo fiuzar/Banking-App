@@ -61,11 +61,9 @@ export async function processBuyCrypto(formData) {
     revalidatePath('/app')
     return { success: true, cryptoAmount }
 
-  } catch (error: any) {
+  } catch (error) {
     await client.query('ROLLBACK')
     return { success: false, error: error.message }
-  } finally {
-    client.release()
   }
 }
 
