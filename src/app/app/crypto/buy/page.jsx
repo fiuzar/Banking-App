@@ -1,222 +1,300 @@
 'use client'
 
-import { useState, useEffect, useContext, useCallback , useMemo} from "react"
-import { AccountDetailsContext, UserContext } from "@/server-functions/contexts"
+import { useState, useEffect, useContext, useCallback, useMemo } from "react"
+import { AccountDetailsContext } from "@/server-functions/contexts"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Bitcoin, CheckCircle2, ChevronDown, Info, DollarSign, Coins, Zap } from "lucide-react"
-import { TokenETH } from '@web3icons/react';
+import { 
+    ArrowLeft, 
+    Bitcoin, 
+    CheckCircle2, 
+    ChevronDown, 
+    DollarSign, 
+    Coins, 
+    Zap, 
+    Loader2, 
+    AlertCircle, 
+    RefreshCcw, 
+    XCircle,
+    Info
+} from "lucide-react"
+import { TokenETH } from '@web3icons/react'
 import Link from "next/link"
 
-import {getCryptoRate} from "@/server-functions/buy-crypto"
+// Import the server functions
+import { getCryptoRate, processBuyCrypto } from "@/server-functions/crypto"
 
 export default function BuyCryptoPage() {
-	const { accountDetails } = useContext(AccountDetailsContext)
+    const { accountDetails } = useContext(AccountDetailsContext)
     
-    // 1. Move ASSETS into a useMemo so it updates when accountDetails changes
+    // 1. Asset Configuration
     const ASSETS = useMemo(() => [
-        { name: "Bitcoin", symbol: "BTC", color: "bg-orange-500", icon: <Bitcoin size={20} />, coingeckoId: "bitcoin", asset: accountDetails?.bitcoin || 0 },
-        { name: "Ethereum", symbol: "ETH", color: "bg-indigo-500", icon: <TokenETH variant="branded" size={20} />, coingeckoId: "ethereum", asset: accountDetails?.ethereum || 0 },
-        { name: "Tether", symbol: "USDT", color: "bg-green-500", icon: <DollarSign size={20} />, coingeckoId: "tether", asset: accountDetails?.usdt || 0 },
-        { name: "Litecoin", symbol: "LTC", color: "bg-gray-400", icon: <Coins size={20} />, coingeckoId: "litecoin", asset: accountDetails?.litecoin || 0 },
-        { name: "Solana", symbol: "SOL", color: "bg-purple-600", icon: <Zap size={20} />, coingeckoId: "solana", asset: accountDetails?.solana || 0 },
+        { name: "Bitcoin", symbol: "BTC", color: "bg-orange-500", icon: <Bitcoin size={20} />, asset: accountDetails?.btc || 0 },
+        { name: "Ethereum", symbol: "ETH", color: "bg-indigo-500", icon: <TokenETH variant="branded" size={20} />, asset: accountDetails?.eth || 0 },
+        { name: "Tether", symbol: "USDT", color: "bg-green-500", icon: <DollarSign size={20} />, asset: accountDetails?.usdt || 0 },
+        { name: "Litecoin", symbol: "LTC", color: "bg-gray-400", icon: <Coins size={20} />, asset: accountDetails?.ltc || 0 },
+        { name: "Solana", symbol: "SOL", color: "bg-purple-600", icon: <Zap size={20} />, asset: accountDetails?.solana || 0 },
     ], [accountDetails]);
 
+    // 2. State Management
+    const [status, setStatus] = useState('idle') // 'idle' | 'processing' | 'success' | 'error'
     const [amount, setAmount] = useState("")
-    const [isSuccess, setIsSuccess] = useState(false)
-    const [selectedAsset, setSelectedAsset] = useState(ASSETS[2]) // Default USDT
+    const [selectedAsset, setSelectedAsset] = useState(ASSETS[0])
     const [showAssetList, setShowAssetList] = useState(false)
     const [price, setPrice] = useState(null)
     const [loadingPrice, setLoadingPrice] = useState(false)
-    const [isProcessing, setIsProcessing] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
 
-	// FETCH PRICE FROM CRYPTOMUS VIA YOUR BACKEND
-	const fetchCryptomusPrice = useCallback(async () => {
-    setLoadingPrice(true)
-    
-    // Call the server function directly
-    const res = await getCryptoRate(selectedAsset.symbol)
+    // 3. Price Fetching Logic
+    const fetchPrice = useCallback(async () => {
+        setLoadingPrice(true)
+        const res = await getCryptoRate(selectedAsset.symbol)
+        if (res.success && res.rate) {
+            setPrice(res.rate)
+        }
+        setLoadingPrice(false)
+    }, [selectedAsset])
 
-    if (res.success && res.rate) {
-        setPrice(res.rate)
-    } else {
-        console.error("Rate fetch failed:", res.error)
+    useEffect(() => {
+        fetchPrice()
+        const interval = setInterval(fetchPrice, 15000)
+        return () => clearInterval(interval)
+    }, [fetchPrice])
+
+    // 4. Transaction Handler
+    const handlePurchase = async () => {
+        const numAmount = parseFloat(amount)
+        const totalToPay = numAmount + 0.99 // Including the $0.99 fee
+
+        // Local Validation
+        if (!numAmount || numAmount <= 0) {
+            setErrorMessage("Please enter a valid amount.")
+            return
+        }
+
+        if (totalToPay > (accountDetails?.savings_balance || 0)) {
+            setErrorMessage("Insufficient funds in your USD Savings.")
+            return
+        }
+
+        setStatus('processing')
+        setErrorMessage("")
+
+        try {
+            const formData = new FormData()
+            formData.append('amount', amount)
+            formData.append('asset', selectedAsset.symbol)
+
+            const res = await processBuyCrypto(formData)
+
+            if (res.success) {
+                setStatus('success')
+            } else {
+                setErrorMessage(res.error || "Transaction declined by bank.")
+                setStatus('error')
+            }
+        } catch (err) {
+            setErrorMessage("Connection lost. Please check your internet.")
+            setStatus('error')
+        }
     }
-    
-    setLoadingPrice(false)
-}, [selectedAsset])
 
-	useEffect(() => {
-		fetchCryptomusPrice()
-		const interval = setInterval(fetchCryptomusPrice, 15000) // 15s is standard for crypto volatility
-		return () => clearInterval(interval)
-	}, [fetchCryptomusPrice])
+    // 5. Conditional Rendering for States
+    if (status === 'success') return <SuccessState asset={selectedAsset} amount={amount} price={price} />
+    if (status === 'error') return <ErrorState message={errorMessage} onRetry={() => setStatus('idle')} />
 
-	const handlePurchase = async () => {
-		setIsProcessing(true)
-		// 1. Check if balance is sufficient
-		const totalToPay = parseFloat(amount) + 0.99
-		if (totalToPay > accountDetails.savings_balance) {
-			alert("Insufficient funds in USD Savings")
-			setIsProcessing(false)
-			return
-		}
-
-		// 2. Call your Python Backend (main.py)
-		// Pass the current 'price' as a 'quote_id' or 'locked_price'
-		const res = await fetch('/api/crypto/buy', {
-			method: 'POST',
-			body: JSON.stringify({
-				asset: selectedAsset.symbol,
-				amount: amount,
-				lockedPrice: price
-			})
-		})
-
-		if (res.ok) setIsSuccess(true)
-		setIsProcessing(false)
-	}
-
-	if (isSuccess) return <SuccessState asset={selectedAsset} amount={amount} price={price} />
-
-	return (
+    return (
         <div className="min-h-screen bg-slate-50 pb-10">
             {/* Header */}
-            <div className="bg-green-900 p-6 text-white flex items-center justify-between">
+            <div className="bg-green-900 p-6 text-white flex items-center justify-between shadow-lg">
                 <div className="flex items-center gap-4">
                     <Link href="/app"><ArrowLeft size={24} /></Link>
                     <h1 className="text-xl font-bold">Buy Crypto</h1>
                 </div>
+                <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                    <Info size={20} className="text-white/60" />
+                </div>
             </div>
 
-            <div className="max-w-md mx-auto p-6 space-y-8">
+            <div className="max-w-md mx-auto p-6 space-y-6">
                 {/* Asset Selector */}
                 <div className="relative">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Select Asset</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Cryptocurrency</label>
                     <div
-                        className="bg-white border border-slate-100 p-4 rounded-[24px] flex justify-between items-center cursor-pointer shadow-sm"
+                        className="bg-white border border-slate-200 p-5 rounded-[24px] flex justify-between items-center cursor-pointer shadow-sm hover:border-green-800 transition-all active:scale-[0.98]"
                         onClick={() => setShowAssetList(!showAssetList)}
                     >
-                        <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 ${selectedAsset.color} rounded-full flex items-center justify-center text-white`}>
+                        <div className="flex items-center gap-4">
+                            <div className={`w-12 h-12 ${selectedAsset.color} rounded-full flex items-center justify-center text-white shadow-inner`}>
                                 {selectedAsset.icon}
                             </div>
                             <div>
-                                <p className="font-bold text-slate-900">{selectedAsset.name}</p>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase">
-                                    Balance: {parseFloat(selectedAsset.asset).toFixed(4)} {selectedAsset.symbol}
+                                <p className="font-extrabold text-slate-900">{selectedAsset.name}</p>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+                                    Balance: {parseFloat(selectedAsset.asset).toFixed(6)} {selectedAsset.symbol}
                                 </p>
                             </div>
                         </div>
-                        <ChevronDown className="text-slate-300" />
+                        <ChevronDown className={`text-slate-300 transition-transform duration-300 ${showAssetList ? 'rotate-180' : ''}`} />
                     </div>
 
                     {showAssetList && (
-                        <div className="absolute left-0 top-full mt-2 w-full bg-white border border-slate-100 rounded-[24px] shadow-xl z-30 overflow-hidden">
+                        <div className="absolute left-0 top-full mt-2 w-full bg-white border border-slate-200 rounded-[28px] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
                             {ASSETS.map(asset => (
                                 <div
                                     key={asset.symbol}
-                                    className={`flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-slate-50 transition-colors ${asset.symbol === selectedAsset.symbol ? "bg-slate-50" : ""}`}
+                                    className={`flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-slate-50 transition-colors ${asset.symbol === selectedAsset.symbol ? "bg-green-50/50" : ""}`}
                                     onClick={() => { setSelectedAsset(asset); setShowAssetList(false); }}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-8 h-8 ${asset.color} rounded-full flex items-center justify-center text-white`}>
-                                            {asset.icon}
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-sm">{asset.name}</span>
-                                            <span className="text-[10px] text-slate-400 font-bold">{asset.symbol}</span>
-                                        </div>
+                                        <div className={`w-8 h-8 ${asset.color} rounded-full flex items-center justify-center text-white scale-90`}>{asset.icon}</div>
+                                        <span className="font-bold text-sm text-slate-900">{asset.name}</span>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-xs font-black text-slate-900">{parseFloat(asset.asset).toFixed(4)}</p>
-                                        <p className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Current Hold</p>
-                                    </div>
+                                    <span className="text-[10px] font-black text-slate-300">{asset.symbol}</span>
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
 
-				{/* Input Section */}
-				<div className="text-center space-y-4 py-6">
-					<p className="text-meta font-bold uppercase tracking-[0.2em]">Enter USD Amount</p>
-					<div className="relative">
-						<span className="absolute left-1/2 -translate-x-[110px] top-1/2 -translate-y-1/2 text-3xl font-bold text-primary">$</span>
-						<input
-							type="number"
-							value={amount}
-							onChange={(e) => setAmount(e.target.value)}
-							placeholder="0.00"
-							className="w-full bg-transparent text-center balance-xl text-primary outline-none py-4 border-b-2 border-n-100 focus:border-primary transition-colors"
-						/>
-					</div>
-					<p className="text-xs text-n-500 font-medium">
-						You will receive:{" "}
-						<span className="text-brand-dark font-bold">
-							{price && amount ? (parseFloat(amount) / price).toFixed(6) : "0.000000"} {selectedAsset.symbol}
-						</span>
-					</p>
-				</div>
+                {/* Amount Input Card */}
+                <div className="bg-white p-8 rounded-[32px] border border-slate-200 shadow-sm text-center relative overflow-hidden">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Buy Amount (USD)</p>
+                    <div className="relative inline-block">
+                        <span className="absolute -left-8 top-1/2 -translate-y-1/2 text-3xl font-bold text-green-900/30">$</span>
+                        <input
+                            type="number"
+                            inputMode="decimal"
+                            value={amount}
+                            onChange={(e) => {
+                                setAmount(e.target.value)
+                                if(errorMessage) setErrorMessage("")
+                            }}
+                            placeholder="0.00"
+                            className="bg-transparent text-center text-6xl font-black text-green-900 outline-none w-full max-w-[240px] placeholder:text-slate-100"
+                        />
+                    </div>
 
-				{/* Payment Source */}
-				<div className="space-y-3">
-					<p className="text-[10px] font-bold text-n-500 uppercase tracking-widest ml-1">Pay with</p>
-					<div className="bg-secondary p-4 rounded-brand-card flex justify-between items-center border border-border">
-						<div>
-							<p className="text-sm font-bold text-brand-dark">USD Savings</p>
-							<p className="text-[10px] text-n-500">Balance: ${parseFloat(accountDetails.savings_balance)}</p>
-						</div>
-						<div className="w-4 h-4 rounded-full border-2 border-primary bg-primary" />
-					</div>
-				</div>
+                    <div className="mt-6 flex flex-col items-center gap-1">
+                        {loadingPrice ? (
+                            <div className="flex items-center gap-2 text-slate-300 text-[10px] font-bold animate-pulse uppercase tracking-widest">
+                                <Loader2 size={12} className="animate-spin" /> Updating Market Price
+                            </div>
+                        ) : (
+                            <p className="text-xs text-slate-500 font-bold bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+                                1 {selectedAsset.symbol} = ${price?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </p>
+                        )}
+                        <p className="text-[11px] font-bold text-green-700 mt-2">
+                            You receive ≈ { (price && amount) ? (parseFloat(amount) / price).toFixed(8) : "0.00000000" } {selectedAsset.symbol}
+                        </p>
+                    </div>
 
-				{/* Summary */}
-				<div className="bg-n-100/50 p-5 rounded-brand-card border border-n-100 space-y-3">
-					<div className="flex justify-between text-xs font-medium">
-						<span className="text-n-500 uppercase">Network Fee</span>
-						<span className="font-bold">$0.99</span>
-					</div>
-					<div className="flex justify-between text-xs font-medium">
-						<span className="text-n-500 uppercase">Total to Pay</span>
-						<span className="font-bold text-brand-dark">
-							${(parseFloat(amount || "0") + 0.99).toFixed(2)}
-						</span>
-					</div>
-				</div>
+                    {errorMessage && (
+                        <div className="mt-4 p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl flex items-center justify-center gap-2 animate-in slide-in-from-top-1">
+                            <AlertCircle size={14} />
+                            <span className="text-[11px] font-bold">{errorMessage}</span>
+                        </div>
+                    )}
+                </div>
 
-				<Button
-					onClick={handlePurchase}
-					disabled={!amount || parseFloat(amount) <= 0 || !price}
-					className="btn-primary w-full h-14 text-lg shadow-xl shadow-primary/20"
-				>
-					Confirm Purchase
-				</Button>
-			</div>
-		</div>
-	)
+                {/* Summary Section */}
+                <div className="space-y-3">
+                    <div className="bg-slate-100/50 p-5 rounded-[24px] border border-slate-100 space-y-3">
+                        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
+                            <span className="text-slate-400">Payment Source</span>
+                            <span className="text-slate-900">USD Savings Account</span>
+                        </div>
+                        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
+                            <span className="text-slate-400">Network Fee</span>
+                            <span className="text-slate-900">$0.99</span>
+                        </div>
+                        <div className="h-px bg-slate-200" />
+                        <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-500">Total Charged</span>
+                            <span className="text-lg font-black text-green-900">
+                                ${ (parseFloat(amount || 0) + 0.99).toFixed(2) }
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <Button
+                    onClick={handlePurchase}
+                    disabled={!amount || parseFloat(amount) <= 0 || !price || status === 'processing'}
+                    className="w-full h-18 bg-green-900 hover:bg-green-800 text-white rounded-[24px] text-lg font-bold shadow-2xl shadow-green-900/30 transition-all active:scale-95 disabled:opacity-50"
+                >
+                    {status === 'processing' ? (
+                        <div className="flex items-center gap-3">
+                            <Loader2 className="animate-spin" />
+                            <span>Processing...</span>
+                        </div>
+                    ) : (
+                        "Confirm Purchase"
+                    )}
+                </Button>
+
+                <p className="text-[10px] text-center text-slate-400 font-medium px-6">
+                    By confirming, you agree to the instantaneous exchange of USD for digital assets at the current market rate.
+                </p>
+            </div>
+        </div>
+    )
 }
 
+// 6. Full Screen States
 function SuccessState({ asset, amount, price }) {
-	return (
-		<div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-6 animate-in zoom-in-95">
-			<div className="w-24 h-24 bg-bank-success/20 text-bank-success rounded-full flex items-center justify-center">
-				<CheckCircle2 size={56} strokeWidth={3} />
-			</div>
-			<div>
-				<h2 className="text-3xl font-black text-brand-dark">Purchase Success!</h2>
-				<p className="text-n-500 mt-2 max-w-[280px] mx-auto">
-					You've successfully purchased {asset.symbol} using your USD Savings account.
-				</p>
-			</div>
-			<div className="bg-secondary p-6 rounded-brand-card w-full max-w-xs border border-border">
-				<p className="text-meta uppercase font-bold tracking-widest mb-1">Asset Received</p>
-				<p className="balance-md text-primary">
-					{price && amount ? (parseFloat(amount) / price).toFixed(6) : "0.000000"} {asset.symbol}
-				</p>
-			</div>
-			<Link href="/app" className="w-full max-w-xs">
-				<Button variant="outline" className="w-full h-12 border-primary text-primary font-bold">Return to Wallet</Button>
-			</Link>
-		</div>
-	)
+    return (
+        <div className="min-h-screen flex flex-col items-center justify-center p-8 text-center space-y-8 bg-white animate-in zoom-in-95 duration-500">
+            <div className="w-24 h-24 bg-green-100 text-green-700 rounded-full flex items-center justify-center shadow-inner">
+                <CheckCircle2 size={56} strokeWidth={2.5} />
+            </div>
+            <div className="space-y-2">
+                <h2 className="text-4xl font-black text-slate-900 tracking-tight">Success!</h2>
+                <p className="text-slate-500 max-w-[280px] mx-auto text-sm font-medium leading-relaxed">
+                    Your {asset.name} has been purchased and added to your secure wallet.
+                </p>
+            </div>
+            <div className="bg-slate-50 p-8 rounded-[40px] w-full max-w-xs border border-slate-100 shadow-sm">
+                <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-2">Total Received</p>
+                <p className="text-4xl font-black text-green-900">
+                    { (parseFloat(amount) / price).toFixed(8) }
+                </p>
+                <p className="text-xs font-bold text-green-700 mt-1">{asset.symbol}</p>
+            </div>
+            <Link href="/app" className="w-full max-w-xs pt-4">
+                <Button className="w-full h-16 bg-green-900 text-white rounded-[24px] font-bold text-lg shadow-xl shadow-green-900/20">
+                    Back to Wallet
+                </Button>
+            </Link>
+        </div>
+    )
+}
+
+function ErrorState({ message, onRetry }) {
+    return (
+        <div className="min-h-screen flex flex-col items-center justify-center p-8 text-center space-y-8 bg-white animate-in fade-in duration-500">
+            <div className="w-24 h-24 bg-red-100 text-red-600 rounded-full flex items-center justify-center">
+                <XCircle size={56} strokeWidth={2.5} />
+            </div>
+            <div className="space-y-2">
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Transaction Failed</h2>
+                <p className="text-slate-500 text-sm font-medium px-4 leading-relaxed">
+                    {message || "An unexpected error occurred. Please verify your account balance and try again."}
+                </p>
+            </div>
+            <div className="flex flex-col w-full max-w-xs gap-4">
+                <Button 
+                    onClick={onRetry} 
+                    className="h-16 bg-slate-900 text-white rounded-[24px] font-extrabold text-lg flex items-center justify-center gap-3 shadow-xl"
+                >
+                    <RefreshCcw size={20} /> Try Again
+                </Button>
+                <Link href="/app" className="w-full">
+                    <Button variant="ghost" className="w-full h-12 text-slate-400 font-bold hover:text-slate-600">
+                        Cancel Transaction
+                    </Button>
+                </Link>
+            </div>
+        </div>
+    )
 }

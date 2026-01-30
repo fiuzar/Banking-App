@@ -1,86 +1,23 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import {query} from "@/dbh"
+import { query, pool } from "@/dbh"
+import { auth } from "@/auth"
 
-export async function processBuyCrypto(formData) {
-  const usdAmount = parseFloat(formData.get('amount'))
-  const asset = formData.get('asset') // e.g., 'BTC', 'ETH'
-  const userId = "user_123"
-
-  const client = await pool.connect()
-
-  try {
-    await client.query('BEGIN')
-
-    // 1. Lock User Row & Validate Fiat Balance
-    const userRes = await client.query(
-      `SELECT checking_balance, kyc_status FROM users WHERE id = $1 FOR UPDATE`,
-      [userId]
-    )
-
-    if (userRes.rows[0].kyc_status !== 'verified') {
-      throw new Error("KYC verification required to purchase crypto.")
-    }
-
-    if (userRes.rows[0].checking_balance < usdAmount) {
-      throw new Error("Insufficient funds in your checking account.")
-    }
-
-    // 2. Fetch Live Price (Using Cryptomus or Public Price API)
-    // For a demo, we assume a stable price or mock the fetch
-    // Real call: fetch(`https://api.cryptomus.com/v1/exchange-rate/${asset}/USD`)
-    const mockPrice = asset === 'BTC' ? 95000 : 2500
-    const cryptoAmount = usdAmount / mockPrice
-
-    // 3. The Swap: Deduct Checking (Fiat) -> Credit Savings (Crypto)
-    await client.query(
-      `UPDATE users SET checking_balance = checking_balance - $1 WHERE id = $2`,
-      [usdAmount, userId]
-    )
-
-    await client.query(
-      `UPDATE users SET savings_balance = savings_balance + $1 WHERE id = $2`,
-      [usdAmount, userId] // We store the value in USD for your dashboard logic
-    )
-
-    // 4. Record Transaction
-    await client.query(
-      `INSERT INTO transactions (
-        user_id, amount, type, status, description, metadata
-      ) VALUES ($1, $2, 'crypto_purchase', 'completed', $3, $4)`,
-      [
-        userId, 
-        usdAmount, 
-        `Bought ${cryptoAmount.toFixed(8)} ${asset}`,
-        JSON.stringify({ asset, rate: mockPrice, cryptoAmount })
-      ]
-    )
-
-    await client.query('COMMIT')
-    revalidatePath('/app')
-    return { success: true, cryptoAmount }
-
-  } catch (error) {
-    await client.query('ROLLBACK')
-    return { success: false, error: error.message }
-  }
-}
-
+/**
+ * Fetches the current exchange rate from Cryptomus
+ */
 export async function getCryptoRate(symbol) {
-    if (!symbol) return { error: "Symbol is required" };
+    if (!symbol) return { success: false, error: "Symbol is required" };
 
     try {
         const response = await fetch(`https://api.cryptomus.com/v1/exchange-rate/${symbol.toUpperCase()}/list`, {
-            next: { revalidate: 10 } // Optional: Cache for 10 seconds to save API calls
+            next: { revalidate: 15 } // Cache for 15 seconds
         });
 
         if (!response.ok) throw new Error("Cryptomus API unreachable");
 
         const data = await response.json();
-
-        // Professional touch: Find the USD rate specifically before returning
-        // This saves the frontend from having to loop through the array
         const usdRate = data.result?.find(r => r.to === 'USD');
 
         return { 
@@ -88,7 +25,114 @@ export async function getCryptoRate(symbol) {
             rate: usdRate ? parseFloat(usdRate.course) : null 
         };
     } catch (error) {
-        console.error("Crypto Rate Error:", error);
+        console.error("Rate Fetch Error:", error);
         return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Processes the crypto purchase transaction
+ */
+export async function processBuyCrypto(formData) {
+    const session = await auth();
+    if (!session?.user) return { success: false, error: "Unauthorized" };
+
+    const usdAmount = parseFloat(formData.get('amount'));
+    const asset = formData.get('asset')?.toUpperCase();
+    const userId = session.user.id;
+    const networkFee = 0.99;
+    const totalFiatCost = usdAmount + networkFee;
+
+    if (isNaN(usdAmount) || usdAmount <= 0) {
+        return { success: false, error: "Invalid amount" };
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        // 1. Check KYC Status
+        const userRes = await client.query(
+            `SELECT kyc_status FROM paysense_users WHERE id = $1 FOR UPDATE`,
+            [userId]
+        );
+
+        if (userRes.rows[0]?.kyc_status !== 'verified') {
+            throw new Error("Identity verification (KYC) is required to trade crypto.");
+        }
+
+        // 2. Validate Savings Balance (NULL-safe check)
+        const accountRes = await client.query(
+            `SELECT COALESCE(savings_balance, 0) as balance FROM paysense_accounts WHERE user_id = $1 FOR UPDATE`,
+            [userId]
+        );
+
+        if (!accountRes.rows[0] || parseFloat(accountRes.rows[0].balance) < totalFiatCost) {
+            throw new Error("Insufficient funds in your USD Savings account.");
+        }
+
+        // 3. Get Live Price via internal function to ensure consistency
+        const rateResult = await getCryptoRate(asset);
+        if (!rateResult.success || !rateResult.rate) {
+            throw new Error("Could not confirm market price. Please try again.");
+        }
+
+        const currentPrice = rateResult.rate;
+        const cryptoToReceive = usdAmount / currentPrice;
+
+        // 4. Update Balances (COALESCE handles potential NULLs in coin columns)
+        const assetColumn = asset.toLowerCase();
+        
+        // Deduct USD from Savings
+        await client.query(
+            `UPDATE paysense_accounts 
+             SET savings_balance = COALESCE(savings_balance, 0) - $1 
+             WHERE user_id = $2`,
+            [totalFiatCost, userId]
+        );
+
+        // Credit Crypto Asset
+        await client.query(
+            `UPDATE paysense_accounts 
+             SET ${assetColumn} = COALESCE(${assetColumn}, 0) + $1 
+             WHERE user_id = $2`,
+            [cryptoToReceive, userId]
+        );
+
+        // 5. Log Transaction
+        await client.query(
+            `INSERT INTO paysense_transactions (
+                user_id, amount, type, status, description, metadata
+            ) VALUES ($1, $2, 'crypto_purchase', 'completed', $3, $4)`,
+            [
+                userId,
+                totalFiatCost,
+                `Purchased ${cryptoToReceive.toFixed(8)} ${asset}`,
+                JSON.stringify({
+                    asset: asset,
+                    execution_price: currentPrice,
+                    crypto_amount: cryptoToReceive,
+                    fiat_spent: usdAmount,
+                    fee: networkFee
+                })
+            ]
+        );
+
+        await client.query('COMMIT');
+
+        revalidatePath('/app');
+        return { 
+            success: true, 
+            received: cryptoToReceive.toFixed(8), 
+            asset: asset 
+        };
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error("Crypto Purchase Transaction Failed:", error.message);
+        return { success: false, error: error.message };
+    } finally {
+        client.release();
     }
 }

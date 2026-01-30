@@ -1,126 +1,220 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, Camera, CheckCircle2, Info, Image as ImageIcon } from "lucide-react"
+import { ArrowLeft, Camera, CheckCircle2, Info, Image as ImageIcon, Loader2, X } from "lucide-react"
 import Link from "next/link"
+import { submitCheckDeposit } from "@/server-functions/deposits"
 
 export default function CheckDeposit() {
-  const [step, setStep] = useState(1) // 1: Details & Photos, 2: Success
-  const [frontImage, setFrontImage] = useState(false)
-  const [backImage, setBackImage] = useState(false)
+    const [step, setStep] = useState(1) // 1: Details, 2: Success
+    const [amount, setAmount] = useState("")
+    const [account, setAccount] = useState("USD Checking (*** 1234)")
+    
+    // File States
+    const [frontFile, setFrontFile] = useState(null)
+    const [backFile, setBackFile] = useState(null)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [error, setError] = useState("")
 
-  if (step === 2) return <SuccessState />
+    // Refs for hidden inputs
+    const frontInputRef = useRef(null)
+    const backInputRef = useRef(null)
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-primary p-6 text-white flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/app"><ArrowLeft size={24} /></Link>
-          <h1 className="text-xl font-bold">Check Deposit</h1>
-        </div>
-        <Info size={20} className="opacity-60" />
-      </div>
+    const handleFileChange = (e, side) => {
+        const file = e.target.files[0]
+        if (file) {
+            if (side === 'front') setFrontFile(file)
+            else setBackFile(file)
+            setError("")
+        }
+    }
 
-      <div className="max-w-md mx-auto p-6 space-y-8">
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-          <header>
-            <h2 className="text-xl font-black text-brand-dark">Deposit a Check</h2>
-            <p className="text-meta">Standard processing: 1-3 Business Days</p>
-          </header>
+    const handleSubmit = async () => {
+        if (!amount || parseFloat(amount) <= 0) {
+            setError("Please enter a valid deposit amount")
+            return
+        }
 
-          {/* Amount & Destination */}
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-n-500">Check Amount (USD)</Label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-primary">$</span>
-                <Input type="number" className="h-14 pl-8 bg-white balance-md text-primary" placeholder="0.00" />
-              </div>
+        setIsSubmitting(true)
+        setError("")
+
+        const formData = new FormData()
+        formData.append('amount', amount)
+        formData.append('accountType', account)
+        formData.append('frontImage', frontFile)
+        formData.append('backImage', backFile)
+
+        try {
+            const res = await submitCheckDeposit(formData)
+            if (res.success) {
+                setStep(2)
+            } else {
+                setError(res.error || "Failed to submit deposit")
+            }
+        } catch (err) {
+            setError("A connection error occurred. Please try again.")
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    if (step === 2) return <SuccessState />
+
+    return (
+        <div className="min-h-screen bg-slate-50">
+            {/* Header */}
+            <div className="bg-green-900 p-6 text-white flex items-center justify-between shadow-lg">
+                <div className="flex items-center gap-4">
+                    <Link href="/app"><ArrowLeft size={24} /></Link>
+                    <h1 className="text-xl font-bold">Check Deposit</h1>
+                </div>
+                <Info size={20} className="opacity-60" />
             </div>
 
-            <div className="grid gap-2">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-n-500">Deposit Into</Label>
-              <select className="h-14 w-full bg-white border border-input rounded-md px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-primary">
-                <option>USD Checking (*** 1234)</option>
-                <option>USD Savings (*** 6708)</option>
-              </select>
+            <div className="max-w-md mx-auto p-6 space-y-8">
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                    <header>
+                        <h2 className="text-xl font-black text-slate-900">Deposit a Check</h2>
+                        <p className="text-xs font-bold text-green-700 uppercase tracking-wider">Standard processing: 1-3 Business Days</p>
+                    </header>
+
+                    {/* Amount & Destination */}
+                    <div className="space-y-4">
+                        <div className="grid gap-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Check Amount (USD)</Label>
+                            <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-green-900">$</span>
+                                <Input 
+                                    type="number" 
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    className="h-14 pl-8 bg-white border-slate-200 rounded-2xl text-lg font-bold text-green-900 focus:ring-green-900" 
+                                    placeholder="0.00" 
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Deposit Into</Label>
+                            <select 
+                                value={account}
+                                onChange={(e) => setAccount(e.target.value)}
+                                className="h-14 w-full bg-white border border-slate-200 rounded-2xl px-4 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-green-900 appearance-none"
+                            >
+                                <option>USD Checking (*** 1234)</option>
+                                <option>USD Savings (*** 6708)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Hidden File Inputs */}
+                    <input type="file" accept="image/*" capture="environment" ref={frontInputRef} className="hidden" onChange={(e) => handleFileChange(e, 'front')} />
+                    <input type="file" accept="image/*" capture="environment" ref={backInputRef} className="hidden" onChange={(e) => handleFileChange(e, 'back')} />
+
+                    {/* Capture Area */}
+                    <div className="grid grid-cols-1 gap-4">
+                         <CaptureSlot 
+                            label="Front of Check" 
+                            file={frontFile} 
+                            onClick={() => frontInputRef.current.click()} 
+                            onClear={() => setFrontFile(null)}
+                         />
+                         <CaptureSlot 
+                            label="Back of Check" 
+                            file={backFile} 
+                            subtext="Endorsed with 'For Mobile Deposit Only'"
+                            onClick={() => backInputRef.current.click()} 
+                            onClear={() => setBackFile(null)}
+                         />
+                    </div>
+
+                    {error && (
+                        <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-xl animate-shake">
+                            {error}
+                        </div>
+                    )}
+
+                    <div className="bg-blue-50 p-4 rounded-2xl flex gap-3 border border-blue-100">
+                         <Info className="text-blue-500 shrink-0" size={18} />
+                         <p className="text-[11px] text-blue-800 leading-relaxed font-medium">
+                           Ensure the check is placed on a dark, flat surface with good lighting. All four corners must be visible.
+                         </p>
+                    </div>
+
+                    <Button 
+                        onClick={handleSubmit} 
+                        disabled={!frontFile || !backFile || isSubmitting}
+                        className="w-full h-14 text-lg bg-green-900 hover:bg-green-800 text-white rounded-2xl font-bold shadow-xl disabled:opacity-50 transition-all"
+                    >
+                        {isSubmitting ? (
+                            <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Processing...</>
+                        ) : "Submit Deposit"}
+                    </Button>
+                </div>
             </div>
-          </div>
-
-          {/* Capture Area */}
-          <div className="grid grid-cols-1 gap-4">
-             <CaptureSlot 
-                label="Front of Check" 
-                active={frontImage} 
-                onClick={() => setFrontImage(true)} 
-             />
-             <CaptureSlot 
-                label="Back of Check" 
-                active={backImage} 
-                subtext="Must be endorsed with 'For Mobile Deposit Only'"
-                onClick={() => setBackImage(true)} 
-             />
-          </div>
-
-          <div className="bg-blue-50 p-4 rounded-xl flex gap-3 border border-blue-100">
-             <Info className="text-blue-500 shrink-0" size={18} />
-             <p className="text-[11px] text-blue-800 leading-relaxed">
-               Ensure the check is placed on a dark, flat surface with good lighting. All four corners must be visible.
-             </p>
-          </div>
-
-          <Button 
-            onClick={() => setStep(2)} 
-            disabled={!frontImage || !backImage}
-            className="btn-primary w-full h-14 text-lg shadow-lg shadow-primary/20"
-          >
-            Submit Deposit
-          </Button>
         </div>
-      </div>
-    </div>
-  )
+    )
 }
 
-function CaptureSlot({ label, active, onClick, subtext }) {
+function CaptureSlot({ label, file, onClick, onClear, subtext }) {
     return (
-        <div 
-            onClick={onClick}
-            className={`relative h-32 w-full border-2 border-dashed rounded-brand-card flex flex-col items-center justify-center transition-all cursor-pointer ${active ? 'border-primary bg-primary/5' : 'border-n-300 bg-white hover:border-n-500'}`}
-        >
-            {active ? (
-                <>
-                    <ImageIcon className="text-primary mb-2" size={28} />
-                    <span className="text-xs font-bold text-primary">Image Captured</span>
-                </>
-            ) : (
-                <>
-                    <Camera className="text-n-300 mb-2" size={28} />
-                    <span className="text-xs font-bold text-n-500">{label}</span>
-                    {subtext && <span className="text-[9px] text-n-400 mt-1">{subtext}</span>}
-                </>
-            )}
+        <div className="relative group">
+            <div 
+                onClick={file ? null : onClick}
+                className={`relative h-36 w-full border-2 border-dashed rounded-[24px] flex flex-col items-center justify-center transition-all overflow-hidden ${file ? 'border-green-800 bg-green-50' : 'border-slate-200 bg-white hover:border-green-800 cursor-pointer'}`}
+            >
+                {file ? (
+                    <>
+                        <img 
+                            src={URL.createObjectURL(file)} 
+                            alt="Preview" 
+                            className="absolute inset-0 w-full h-full object-cover opacity-40" 
+                        />
+                        <div className="relative z-10 flex flex-col items-center">
+                            <div className="bg-green-800 text-white p-2 rounded-full mb-1">
+                                <ImageIcon size={20} />
+                            </div>
+                            <span className="text-[10px] font-black text-green-900 uppercase tracking-tighter">Image Ready</span>
+                        </div>
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); onClear(); }}
+                            className="absolute top-3 right-3 z-20 bg-white/80 p-1.5 rounded-full text-slate-600 hover:bg-white"
+                        >
+                            <X size={14} />
+                        </button>
+                    </>
+                ) : (
+                    <>
+                        <div className="bg-slate-50 p-3 rounded-full mb-2 text-slate-300 group-hover:text-green-800 group-hover:bg-green-50 transition-colors">
+                            <Camera size={24} />
+                        </div>
+                        <span className="text-xs font-bold text-slate-900">{label}</span>
+                        {subtext && <span className="text-[9px] text-slate-400 mt-1 font-medium">{subtext}</span>}
+                    </>
+                )}
+            </div>
         </div>
     )
 }
 
 function SuccessState() {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-6">
-      <div className="w-20 h-20 bg-bank-success/20 text-bank-success rounded-full flex items-center justify-center">
-        <CheckCircle2 size={48} strokeWidth={3} />
-      </div>
-      <h2 className="text-2xl font-black text-brand-dark tracking-tight">Check Submitted</h2>
-      <p className="text-n-500 max-w-[280px] mx-auto text-sm">
-        We&apos;ve received your check images. Most deposits are cleared within 24-48 hours.
-      </p>
-      <Link href="/app" className="w-full max-w-xs pt-4">
-        <Button variant="outline" className="w-full h-12 border-primary text-primary font-bold">Return Home</Button>
-      </Link>
-    </div>
-  )
+    return (
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-6 bg-white animate-in zoom-in-95">
+            <div className="w-24 h-24 bg-green-100 text-green-800 rounded-full flex items-center justify-center shadow-inner">
+                <CheckCircle2 size={56} strokeWidth={2.5} />
+            </div>
+            <div className="space-y-2">
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Check Submitted</h2>
+                <p className="text-slate-500 max-w-[280px] mx-auto text-sm font-medium leading-relaxed">
+                    We&apos;ve received your check images. Most deposits are cleared within 24-48 hours after manual review.
+                </p>
+            </div>
+            <Link href="/app" className="w-full max-w-xs pt-4">
+                <Button className="w-full h-14 bg-green-900 text-white rounded-2xl font-bold shadow-lg">Return Home</Button>
+            </Link>
+        </div>
+    )
 }
