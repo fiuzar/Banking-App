@@ -1,80 +1,106 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { Pool } from 'pg'
 import Stripe from 'stripe'
+import { query } from "@/dbh"
+import {auth} from "@/auth"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 
 export async function processLocalUSDTransfer(formData) {
-  const amount = parseFloat(formData.get('amount'))
-  const routingNumber = formData.get('routingNumber')
-  const accountNumber = formData.get('accountNumber')
-  const accountHolderName = formData.get('accountHolderName')
-  
-  const userId = "user_123" 
-  const fee = 0.50 // Typical ACH fee is much lower than Wire
-  const totalDeduction = amount + fee
+    const amount = parseFloat(formData.get('amount'));
+    const amountInCents = Math.round(amount * 100);
+    const accountHolderName = formData.get('accountHolderName');
+    
+    // Internal platform fee (optional)
+    const fee = 0.50; 
+    const totalDeduction = amount + fee;
 
-  const client = await pool.connect()
+    const session = await auth()
+    const userId = session?.user?.id
 
-  try {
-    await client.query('BEGIN')
+    if(!userId) return {success: false, error: "Session not found, login to fix"}
 
-    // 1. Balance & KYC Check
-    const userRes = await client.query(
-      `SELECT checking_balance, kyc_status FROM users WHERE id = $1 FOR UPDATE`,
-      [userId]
-    )
+    try {
+        // --- START DATABASE TRANSACTION ---
+        await query('BEGIN');
 
-    if (userRes.rows[0].kyc_status !== 'verified') throw new Error("KYC required for transfers")
-    if (userRes.rows[0].checking_balance < totalDeduction) throw new Error("Insufficient USD balance")
+        // 1. Fetch User and Account Balance
+        const userRes = await query(
+            `SELECT u.stripe_connect_id, u.kyc_status, a.checking_balance 
+             FROM paysense_users u 
+             JOIN paysense_accounts a ON u.id = a.user_id 
+             WHERE u.id = $1 FOR UPDATE`,
+            [userId]
+        );
 
-    // 2. Stripe: Create a Custom Bank Account Token
-    // This is required to send money to an external bank without saving the full digits
-    const token = await stripe.tokens.create({
-      bank_account: {
-        country: 'US',
-        currency: 'usd',
-        routing_number: routingNumber,
-        account_number: accountNumber,
-        account_holder_name: accountHolderName,
-        account_holder_type: 'individual',
-      },
-    });
+        const user = userRes.rows[0];
 
-    // 3. Trigger the Payout
-    const payout = await stripe.payouts.create({
-      amount: Math.round(amount * 100), // Cents
-      currency: 'usd',
-      method: 'standard', // ACH (usually 1-3 business days)
-      description: `USD Local Transfer to ${accountHolderName}`,
-    });
+        // 2. Safety Checks
+        if (!user) throw new Error("User record not found.");
+        if (!user.stripe_connect_id) throw new Error("Please complete KYC/Bank setup first.");
+        if (user.kyc_status !== 'verified') throw new Error("Your account is pending verification.");
+        if (parseFloat(user.checking_balance) < totalDeduction) throw new Error("Insufficient funds.");
 
-    // 4. Update Database Ledger
-    const newBalance = userRes.rows[0].checking_balance - totalDeduction
-    await client.query(
-      `UPDATE users SET checking_balance = $1 WHERE id = $2`,
-      [newBalance, userId]
-    )
+        // 3. STEP 1: Move funds from Platform Balance to User's Stripe Account
+        const transfer = await stripe.transfers.create({
+            amount: amountInCents,
+            currency: 'usd',
+            destination: user.stripe_connect_id,
+            description: `Withdrawal for ${userId}`,
+            metadata: { internal_user_id: userId }
+        });
 
-    // 5. Finalize Transaction Record with Running Balance
-    await client.query(
-      `INSERT INTO transactions (
-        id, user_id, amount, type, status, description, running_balance
-      ) VALUES ($1, $2, $3, 'local_transfer', 'processing', $4, $5)`,
-      [payout.id, userId, amount, `ACH to ${accountHolderName}`, newBalance]
-    )
+        // 4. STEP 2: Trigger Payout from User's Stripe Account to their Bank
+        // We use the connected account ID in the options object
+        const payout = await stripe.payouts.create({
+            amount: amountInCents,
+            currency: 'usd',
+            description: `PaySense Transfer: ${accountHolderName}`,
+            statement_descriptor: 'PAYSENSE TRF'
+        }, {
+            stripeAccount: user.stripe_connect_id, 
+        });
 
-    await client.query('COMMIT')
-    revalidatePath('/app')
-    return { success: true }
+        // 5. Update Local Ledger (Deduct Balance)
+        await query(
+            `UPDATE paysense_accounts 
+             SET checking_balance = checking_balance - $1 
+             WHERE user_id = $2`,
+            [totalDeduction, userId]
+        );
 
-  } catch (error) {
-    await client.query('ROLLBACK')
-    return { success: false, error: error.message }
-  } finally {
-    client.release()
-  }
+        // 6. Record the Transaction
+        const txRes = await query(
+            `INSERT INTO paysense_transactions (
+                user_id, amount, type, description, status, reference_id
+            ) VALUES ($1, $2, 'withdrawal', $3, 'processing', $4)
+            RETURNING id`,
+            [
+                userId, 
+                amount, 
+                `ACH Transfer to ${accountHolderName}`, 
+                'processing', 
+                payout.id
+            ]
+        );
+
+        // 7. Create Success Notification
+        await query(
+            `INSERT INTO paysense_notifications (user_id, type, title, message)
+             VALUES ($1, 'info', 'Transfer Dispatched', $2)`,
+            [userId, `Your transfer of $${amount.toFixed(2)} to ${accountHolderName} is on the way.`]
+        );
+
+        await query('COMMIT');
+        // --- END DATABASE TRANSACTION ---
+
+        revalidatePath('/app');
+        return { success: true, payoutId: payout.id };
+
+    } catch (error) {
+        await query('ROLLBACK');
+        console.error("Local Transfer Failed:", error.message);
+        return { success: false, error: error.message };
+    }
 }

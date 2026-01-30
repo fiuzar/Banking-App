@@ -1,187 +1,304 @@
 'use client'
 
-import { useState, useRef } from "react"
+import { useState, useContext, useEffect } from "react"
+import { UserContext } from "@/server-functions/contexts"
 import { Button } from "@/components/ui/button"
 import {
-  ArrowLeft,
-  Upload,
-  CheckCircle2,
-  ShieldCheck,
-  CreditCard,
-  FileText,
-  UserCheck,
-  X 
+    ShieldCheck, Bell, Globe, ArrowLeft, Landmark, 
+    Camera, Mail, Smartphone, Edit3, BadgeCheck, 
+    AlertCircle, ChevronDown, Check, CreditCard, ExternalLink
 } from "lucide-react"
 import Link from "next/link"
-import { submitKYC } from "@/server-functions/authentication"
+import { UserProfileSettings } from "@/components/app/user_setings"
 
-export default function KYCPage() {
-  const [step, setStep] = useState(1)
-  const [idType, setIdType] = useState('')
-  const [file, setFile] = useState(null)
-  const [preview, setPreview] = useState(null)
-  const [error, setError] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const fileInputRef = useRef(null)
-
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files?.[0]
-    if (selectedFile) {
-      setFile(selectedFile)
-      setPreview(URL.createObjectURL(selectedFile))
-      setError("") 
+// --- ADD: Backend update function ---
+async function updateUserLocale(locale) {
+    try {
+        const res = await fetch('/api/user/locale', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(locale)
+        })
+        if (!res.ok) throw new Error('Failed to update locale')
+        return { success: true }
+    } catch (e) {
+        return { success: false, error: e.message }
     }
-  }
+}
 
-  if (step === 3) return <SuccessState />
+export default function AccountManagement() {
+    const { user } = useContext(UserContext)
+    const [isNotificationsOn, setIsNotificationsOn] = useState(true)
+    const [isEditing, setIsEditing] = useState(false)
+    const [country, setCountry] = useState(null)
+    const [countryFlag, setCountryFlag] = useState(null)
+    const [isLanguageOpen, setIsLanguageOpen] = useState(false)
+    const [selectedLocale, setSelectedLocale] = useState({ 
+        lang: 'English (US)', 
+        currency: 'USD', 
+        flag: '🇺🇸' 
+    })
+    const [localeStatus, setLocaleStatus] = useState(null)
 
-  return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="p-6 flex items-center gap-4 border-b border-slate-100">
-        <Link href="/app/settings">
-          <ArrowLeft size={24} className="text-brand-dark" />
-        </Link>
-        <h1 className="text-lg font-black text-brand-dark">Identity Verification</h1>
-      </div>
+    // Stripe Connect & KYC Logic
+    const hasStripeAccount = !!user?.stripe_connect_id;
+    const kycStatus = user?.kyc_status || 'unverified'; // unverified, pending, verified, rejected
+    const bankLinked = !!user?.external_account_id; // Check if user has linked their checking/savings
 
-      <div className="max-w-md mx-auto p-6 space-y-8">
-        {step === 1 ? (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-            <header>
-              <h2 className="text-xl font-black text-brand-dark">Select ID Type</h2>
-              <p className="text-sm text-slate-500">Choose the document for verification.</p>
-            </header>
-            <div className="grid gap-3">
-              <IDOption icon={<FileText />} title="Passport" selected={idType === 'passport'} onClick={() => setIdType('passport')} />
-              <IDOption icon={<CreditCard />} title="Driver's License" selected={idType === 'license'} onClick={() => setIdType('license')} />
-              <IDOption icon={<UserCheck />} title="National ID" selected={idType === 'national'} onClick={() => setIdType('national')} />
-            </div>
-            {/* FIXED: was disabled={idType}, should be disabled={!idType} */}
-            <Button disabled={!idType} onClick={() => setStep(2)} className="w-full h-14 rounded-2xl bg-green-900 text-white font-bold">
-              Continue
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-            <header>
-              <h2 className="text-xl font-black text-brand-dark">Upload Document</h2>
-              <p className="text-sm text-slate-500">Take a clear photo of your {idType}.</p>
-            </header>
+    function countryCodeToFlag(code) {
+        return code
+            .toUpperCase()
+            .replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt()))
+    }
 
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*"
-              className="hidden"
-            />
+    useEffect(() => {
+        fetch('https://ipapi.co/json/')
+            .then(res => res.json())
+            .then(data => {
+                setCountry(data.country_name)
+                setCountryFlag(data.country_code ? countryCodeToFlag(data.country_code) : null)
+            })
+            .catch(() => {
+                setCountry(null)
+                setCountryFlag(null)
+            })
+    }, [])
 
-            {!preview ? (
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="aspect-[3/2] w-full border-2 border-dashed border-slate-200 rounded-[32px] flex flex-col items-center justify-center bg-slate-50 hover:border-green-800 transition-all cursor-pointer"
-              >
-                <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center text-green-800 mb-4">
-                  <Upload size={24} />
+    async function handleLocaleChange(item) {
+        setSelectedLocale(item)
+        setIsLanguageOpen(false)
+        setLocaleStatus(null)
+        const result = await updateUserLocale(item)
+        if (result.success) {
+            setLocaleStatus("Language updated!")
+        } else {
+            setLocaleStatus("Failed to update language.")
+        }
+        setTimeout(() => setLocaleStatus(null), 2000)
+    }
+
+    return (
+        <div className="min-h-screen bg-slate-50 pb-20">
+            {/* Profile Header */}
+            <div className="bg-primary pt-12 pb-20 px-6 text-white text-center relative">
+                <Link href="/app" className="absolute left-6 top-6">
+                    <ArrowLeft size={24} />
+                </Link>
+
+                <div className="relative inline-block">
+                    <div className="w-24 h-24 rounded-full border-4 border-white/20 overflow-hidden shadow-xl mx-auto bg-white flex items-center justify-center">
+                        {user?.profile_image ? (
+                            <img
+                                src={user.profile_image}
+                                alt="Profile"
+                                className="object-cover w-full h-full"
+                            />
+                        ) : (
+                            <div className="text-slate-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" width={64} height={64} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                    <circle cx="12" cy="7" r="4" />
+                                </svg>
+                            </div>
+                        )}
+                    </div>
+                    <button className="absolute bottom-0 right-0 bg-white text-primary p-2 rounded-full shadow-lg border border-slate-100">
+                        <Camera size={16} />
+                    </button>
                 </div>
-                <p className="text-sm font-bold text-brand-dark">Tap to capture or upload</p>
-              </div>
-            ) : (
-              <div className="relative aspect-[3/2] w-full rounded-[32px] overflow-hidden border-2 border-green-800">
-                <img src={preview} alt="ID Preview" className="w-full h-full object-cover" />
-                <button
-                  onClick={() => { setPreview(null); setFile(null) }}
-                  className="absolute top-4 right-4 p-2 bg-black/50 text-white rounded-full backdrop-blur-md"
-                >
-                  <X size={16} />
-                </button>
-              </div>
+
+                <div className="flex items-center justify-center gap-2 mt-4">
+                    <h1 className="text-2xl font-black">{`${user?.first_name ?? "User"} ${user?.last_name ?? ""}`}</h1>
+                    {kycStatus === 'verified' && (
+                        <BadgeCheck size={20} className="text-sky-400 fill-sky-400/20 animate-in zoom-in duration-300" />
+                    )}
+                </div>
+                <p className="text-white/70 text-sm font-medium">
+                    {country ? `${country} ${countryFlag}` : "Detecting location..."}
+                </p>
+            </div>
+
+            <div className="max-w-md mx-auto px-6 mt-[-30px] space-y-6">
+                
+                {/* DYNAMIC STRIPE/KYC BANNER */}
+                {kycStatus !== 'verified' && (
+                    <div className={`p-4 rounded-[24px] flex items-center justify-between border shadow-sm animate-in slide-in-from-top-4 duration-500 ${
+                        !hasStripeAccount ? 'bg-indigo-50 border-indigo-100' :
+                        kycStatus === 'pending' ? 'bg-blue-50 border-blue-100' : 
+                        kycStatus === 'rejected' ? 'bg-red-50 border-red-100' : 'bg-amber-50 border-amber-100'
+                    }`}>
+                        <div className="flex gap-3">
+                            <div className={`p-2 rounded-xl bg-white/50 ${
+                                !hasStripeAccount ? 'text-indigo-600' :
+                                kycStatus === 'pending' ? 'text-blue-600' : 
+                                kycStatus === 'rejected' ? 'text-red-600' : 'text-amber-600'
+                            }`}>
+                                <AlertCircle size={20} />
+                            </div>
+                            <div>
+                                <p className="text-[11px] font-black uppercase tracking-tight text-slate-900">
+                                    {!hasStripeAccount ? "Account Setup Required" : 
+                                     kycStatus === 'pending' ? "Reviewing Documents" : 
+                                     kycStatus === 'rejected' ? "Verification Failed" : "Identity Check"}
+                                </p>
+                                <p className="text-[10px] text-slate-500 leading-tight pr-2">
+                                    {!hasStripeAccount ? "Set up your Stripe Connect ID to enable transfers." : 
+                                     kycStatus === 'pending' ? "Stripe is currently reviewing your profile." : 
+                                     kycStatus === 'rejected' ? "Please check your email for rejection details." : "Verify your identity to increase limits."}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        {kycStatus !== 'pending' && (
+                            <Link href={!hasStripeAccount ? "/app/settings/stripe-setup" : "/app/settings/kyc"}>
+                                <Button size="sm" className={`text-[10px] h-8 font-bold rounded-xl ${
+                                    !hasStripeAccount ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-slate-900'
+                                }`}>
+                                    {!hasStripeAccount ? 'Start' : 'Verify'}
+                                </Button>
+                            </Link>
+                        )}
+                    </div>
+                )}
+
+                {/* Account Info Card */}
+                <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 space-y-4">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Personal Info</h2>
+                        <button onClick={() => setIsEditing(true)} className="text-primary flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest">
+                            <Edit3 size={12} /> Edit
+                        </button>
+                    </div>
+                    <div className="space-y-4">
+                        <InfoRow icon={<Mail size={18} />} label="Email" value={user?.email ?? "—"} />
+                        <InfoRow icon={<Smartphone size={18} />} label="Phone" value={user?.phone ?? "—"} />
+                    </div>
+                </div>
+
+                {/* LINKED BANK CARD (Checking/Savings) */}
+                <div className="bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 space-y-4">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Linked Payout Account</h2>
+                        {bankLinked ? (
+                             <BadgeCheck size={16} className="text-green-500" />
+                        ) : (
+                             <span className="text-[10px] font-bold text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full">Missing</span>
+                        )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <InfoRow 
+                            icon={<Landmark size={18} />} 
+                            label="External Bank" 
+                            value={bankLinked ? (user?.bank_name || "Primary Bank") : "No bank connected"} 
+                        />
+                        {bankLinked ? (
+                            <p className="text-xs font-mono font-bold text-slate-400">••••{user?.last4 || "0000"}</p>
+                        ) : (
+                            <Link href="/app/settings/stripe-setup" className="text-primary text-xs font-bold underline">Link Bank</Link>
+                        )}
+                    </div>
+                </div>
+
+                {/* Settings Groups */}
+                <div className="space-y-2">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Preferences</p>
+                    <div className="bg-white rounded-3xl border border-slate-100 overflow-hidden divide-y divide-slate-50">
+                        
+                        <SettingsLink
+                            icon={<ShieldCheck className="text-blue-500" />}
+                            title="Security & Privacy"
+                            subtitle="2FA, Biometrics, Password"
+                        />
+
+                        {/* Language Dropdown */}
+                        <div className="flex flex-col">
+                            <div onClick={() => setIsLanguageOpen(!isLanguageOpen)} className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-2 bg-slate-50 text-slate-600 rounded-lg">
+                                        <Globe size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-slate-900">Language & Region</p>
+                                        <p className="text-[10px] text-slate-500">{selectedLocale.lang}, {selectedLocale.currency}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs">{selectedLocale.flag}</span>
+                                    <ChevronDown size={18} className={`text-slate-300 transition-transform ${isLanguageOpen ? 'rotate-180' : ''}`} />
+                                </div>
+                            </div>
+
+                            {isLanguageOpen && (
+                                <div className="bg-slate-50/50 px-2 pb-2 animate-in slide-in-from-top-2 duration-200">
+                                    {[
+                                        { lang: 'English (US)', currency: 'USD', flag: '🇺🇸' },
+                                        { lang: 'English (UK)', currency: 'GBP', flag: '🇬🇧' },
+                                        { lang: 'French', currency: 'EUR', flag: '🇫🇷' },
+                                        { lang: 'German', currency: 'EUR', flag: '🇩🇪' }
+                                    ].map((item) => (
+                                        <div key={item.lang} onClick={() => handleLocaleChange(item)} className="flex items-center justify-between p-3 rounded-xl hover:bg-white hover:shadow-sm cursor-pointer transition-all">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-lg">{item.flag}</span>
+                                                <span className="text-xs font-bold text-slate-900">{item.lang}</span>
+                                            </div>
+                                            {selectedLocale.lang === item.lang && <Check size={14} className="text-primary" />}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Notifications Toggle */}
+                        <div className="p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="p-2 bg-orange-50 text-orange-500 rounded-lg">
+                                    <Bell size={20} />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold text-slate-900">Push Notifications</p>
+                                    <p className="text-[10px] text-slate-500">Alerts for all transactions</p>
+                                </div>
+                            </div>
+                            <label className="relative inline-block w-10 h-5 align-middle select-none">
+                                <input type="checkbox" checked={isNotificationsOn} onChange={() => setIsNotificationsOn(!isNotificationsOn)} className="peer absolute opacity-0 w-0 h-0" />
+                                <span className="block w-10 h-5 bg-slate-200 rounded-full transition-colors peer-checked:bg-primary"></span>
+                                <span className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {isEditing && (
+                <UserProfileSettings user={user} setIsEditing={setIsEditing} />
             )}
-
-            <div className="bg-blue-50 p-4 rounded-2xl flex gap-3">
-              <ShieldCheck className="text-blue-500 shrink-0" size={20} />
-              <p className="text-[11px] text-blue-800 leading-relaxed">
-                Your data is encrypted and used solely for identity verification required by financial regulations.
-              </p>
-            </div>
-
-            <form action={async (formData) => {
-              setError("");
-              if (!file) {
-                setError("Please upload a document first");
-                return;
-              }
-              setIsSubmitting(true);
-              formData.append('idType', idType);
-              formData.append('document', file);
-              
-              try {
-                const res = await submitKYC(formData);
-                if (!res.success) {
-                  throw new Error(res.error);
-                }
-                setStep(3);
-              } catch (e) {
-                setError(e.message || "Failed to submit documents. Please try again.");
-              } finally {
-                setIsSubmitting(false);
-              }
-            }}>
-              {error && (
-                <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium">
-                  {error}
-                </div>
-              )}
-              <Button 
-                type="submit" 
-                disabled={!file || isSubmitting} 
-                className="w-full h-14 rounded-2xl bg-green-900 text-white font-bold shadow-lg"
-              >
-                {isSubmitting ? "Processing..." : "Submit for Review"}
-              </Button>
-            </form>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function IDOption({ icon, title, selected, onClick }) {
-  return (
-    <div
-      onClick={onClick}
-      className={`p-5 rounded-2xl border-2 flex items-center justify-between cursor-pointer transition-all ${selected ? 'border-green-800 bg-green-50' : 'border-slate-100 bg-white hover:border-slate-200'}`}
-    >
-      <div className="flex items-center gap-4">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${selected ? 'bg-green-800 text-white' : 'bg-slate-100 text-slate-400'}`}>
-          {icon}
         </div>
-        <span className="text-sm font-bold text-brand-dark">{title}</span>
-      </div>
-      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selected ? 'border-green-800 bg-green-800' : 'border-slate-200'}`}>
-        {selected && <div className="w-2 h-2 bg-white rounded-full" />}
-      </div>
-    </div>
-  )
+    )
 }
 
-function SuccessState() {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-6">
-      <div className="w-20 h-20 bg-green-100 text-green-800 rounded-full flex items-center justify-center">
-        <CheckCircle2 size={40} strokeWidth={2.5} />
-      </div>
-      <div className="space-y-2">
-        <h2 className="text-2xl font-black text-brand-dark tracking-tight">Verification Pending</h2>
-        <p className="text-slate-500 max-w-[280px] mx-auto text-sm font-medium">
-          Your documents have been submitted. We usually review KYC applications within 2-4 hours.
-        </p>
-      </div>
-      <Link href="/app/settings" className="w-full max-w-xs">
-        <Button className="w-full h-12 bg-green-900 text-white rounded-xl">Back to Settings</Button>
-      </Link>
-    </div>
-  )
+function InfoRow({ icon, label, value }) {
+    return (
+        <div className="flex items-center gap-4">
+            <div className="text-slate-300">{icon}</div>
+            <div>
+                <p className="text-[10px] text-slate-400 font-bold uppercase">{label}</p>
+                <p className="text-sm font-bold text-slate-900">{value}</p>
+            </div>
+        </div>
+    )
+}
+
+function SettingsLink({ icon, title, subtitle }) {
+    return (
+        <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors">
+            <div className="flex items-center gap-4">
+                <div className="p-2 bg-slate-50 rounded-lg">{icon}</div>
+                <div>
+                    <p className="text-sm font-bold text-slate-900">{title}</p>
+                    <p className="text-[10px] text-slate-500">{subtitle}</p>
+                </div>
+            </div>
+            <ChevronDown className="text-slate-300 -rotate-90" size={18} />
+        </div>
+    )
 }

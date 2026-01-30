@@ -50,7 +50,10 @@ export function LoginForm({ className, ...props }) {
                             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" />
                         </div>
                         <div className="grid gap-2">
+                            <div className="flex justify-between">
                             <Label>Password</Label>
+                            <Link href="/forgot-password" className="underline text-green-800">Forgot Password</Link>
+                            </div>
                             <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
                         </div>
                         <Button disabled={loading || !email || !password} onClick={onSubmit} className="w-full bg-green-800">

@@ -5,6 +5,94 @@ import { query } from "@/dbh"
 import nodemailer from "nodemailer"
 import bcrypt from "bcryptjs"
 import { revalidatePath } from "next/cache";
+import crypto from "crypto"; // Native Node.js module
+
+// --- REQUEST PASSWORD RESET ---
+export async function requestPasswordReset(email_input) {
+    const email = email_input?.trim().toLowerCase();
+    if (!email) return { success: false, message: "Email is required" };
+
+    try {
+        // 1. Check if user exists
+        const { rows } = await query("SELECT id FROM paysense_users WHERE email = $1", [email]);
+        if (rows.length === 0) {
+            // We return success even if user doesn't exist for security (prevent email harvesting)
+            return { success: true, message: "If an account exists, a reset link has been sent." };
+        }
+
+        // 2. Generate a secure random token
+        const token = crypto.randomBytes(32).toString("hex");
+        const expiry = new Date(Date.now() + 3600000); // 1 hour from now
+
+        // 3. Store token in DB (Delete old tokens for this email first)
+        await query("DELETE FROM paysense_password_resets WHERE email = $1", [email]);
+        await query(
+            "INSERT INTO paysense_password_resets (email, token, expires_at) VALUES ($1, $2, $3)",
+            [email, token, expiry]
+        );
+
+        // 4. Send Email
+        const resetLink = `${process.env.NEXT_PUBLIC_URL}/reset-password?token=${token}`;
+        const transport = nodemailer.createTransport({
+            host: "smtp.gmail.com", port: 587,
+            auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASSWORD }
+        });
+
+        await transport.sendMail({
+            from: `"Paysense" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: "Reset Your Password",
+            html: `
+                <div style="font-family: sans-serif; padding: 20px;">
+                    <h2>Password Reset Request</h2>
+                    <p>Click the button below to reset your password. This link expires in 1 hour.</p>
+                    <a href="${resetLink}" style="background: #166534; color: white; padding: 12px 20px; text-decoration: none; border-radius: 8px; display: inline-block;">Reset Password</a>
+                    <p style="margin-top: 20px; font-size: 12px; color: #666;">If you didn't request this, you can safely ignore this email.</p>
+                </div>
+            `
+        });
+
+        return { success: true, message: "Reset link sent successfully." };
+    } catch (e) {
+        console.error("Reset request error:", e);
+        return { success: false, message: "Failed to process request." };
+    }
+}
+
+// --- RESET PASSWORD WITH TOKEN ---
+export async function updatePasswordWithToken(token, newPassword) {
+    if (!token || !newPassword) return { success: false, message: "Invalid request" };
+
+    try {
+        // 1. Verify token and check expiry
+        const { rows } = await query(
+            "SELECT email FROM paysense_password_resets WHERE token = $1 AND expires_at > NOW()",
+            [token]
+        );
+        const record = rows[0];
+
+        if (!record) {
+            return { success: false, message: "Invalid or expired token" };
+        }
+
+        // 2. Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+        // 3. Update User Password
+        await query(
+            "UPDATE paysense_users SET password = $1 WHERE email = $2",
+            [hashedPassword, record.email]
+        );
+
+        // 4. Delete the used token
+        await query("DELETE FROM paysense_password_resets WHERE email = $1", [record.email]);
+
+        return { success: true, message: "Password updated successfully" };
+    } catch (e) {
+        console.error("Password update error:", e);
+        return { success: false, message: "Failed to update password" };
+    }
+}
 
 // --- GOOGLE ACTION ---
 export async function googleSignIn() {
@@ -163,12 +251,13 @@ export async function getCurrentUser() {
 
     try {
         const { rows: user_details } = await query("SELECT id, first_name, last_name, email, phone, image FROM paysense_users WHERE id = $1", [user_id]);
-        const { rows: account_details } = await query("SELECT id, checking_balance, savings_balance FROM paysense_accounts WHERE id = $1", [user_id]);
+        const { rows: account_details } = await query("SELECT id, user_id, checking_balance, savings_balance FROM paysense_accounts WHERE user_id = $1", [user_id]);
 
         if(!account_details[0]){
-            const insert_account_details = await query("INSERT INTO paysense_accounts (id, checking_balance, savings_balance) VALUES ($1, $2, $3) returning id, checking_balance, savings_balance", [user_id, 0.00, 0.00])
+            const insert_account_details = await query("INSERT INTO paysense_accounts (user_id, checking_balance, savings_balance) VALUES ($1, $2, $3) returning id, user_id, checking_balance, savings_balance", [user_id, 0.00, 0.00])
             return { success: true, user_details, account_details: insert_account_details.rows };
         }
+
         return { success: true, user_details, account_details };
 
     } catch (e) {

@@ -3,6 +3,23 @@
 import { revalidatePath } from 'next/cache'
 import { query, pool } from "@/dbh"
 import { auth } from "@/auth"
+import crypto from 'crypto';
+
+export async function generateCryptomusSign(payload) {
+    const apiKey = process.env.CRYPTOMUS_USER_API_KEY; // Your API Key from dashboard
+    
+    // 1. Convert payload to JSON string and then to Base64
+    const jsonPayload = JSON.stringify(payload);
+    const b64Payload = Buffer.from(jsonPayload).toString('base64');
+    
+    // 2. Create the HMAC hash using SHA512 and your API Key
+    const hash = crypto
+        .createHash('md5') // Cryptomus actually uses an MD5 concatenation for standard signs
+        .update(b64Payload + apiKey)
+        .digest('hex');
+
+    return hash;
+}
 
 /**
  * Fetches the current exchange rate from Cryptomus
@@ -134,5 +151,42 @@ export async function processBuyCrypto(formData) {
         return { success: false, error: error.message };
     } finally {
         client.release();
+    }
+}
+
+export async function generateStaticWallet(currency, network) {
+    try {
+        const merchantId = process.env.CRYPTOMUS_MERCHANT_ID;
+        const apiKey = process.env.CRYPTOMUS_API_KEY;
+
+        // Data to send to Cryptomus
+        const data = {
+            currency: currency,
+            network: network,
+            url_callback: `${process.env.WEBSITE_ADDRESS}/api/webhooks/cryptomus`,
+            // Use your actual user's ID here so the webhook knows who to credit!
+            order_id: `USER_${Date.now()}` 
+        };
+
+        // Cryptomus Signature Logic
+        const b64 = Buffer.from(JSON.stringify(data)).toString('base64');
+        const sign = crypto.createHash('md5').update(b64 + apiKey).digest('hex');
+
+        const response = await fetch('https://api.cryptomus.com/v1/wallet', {
+            method: 'POST',
+            headers: {
+                'merchant': merchantId,
+                'sign': sign,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        return result;
+
+    } catch (error) {
+        console.error("Cryptomus API Error:", error);
+        return { error: "Failed to generate wallet" };
     }
 }

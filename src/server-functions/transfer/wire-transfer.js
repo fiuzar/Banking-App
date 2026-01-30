@@ -2,51 +2,82 @@
 
 import { query } from "@/dbh"
 import { auth } from "@/auth"
+import Stripe from 'stripe'
+import { revalidatePath } from 'next/cache'
 
-export async function initiateWireTransfer(amount, recipientName, routingNumber, accountNumber) {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+
+export async function initiateWireTransfer(formData) {
     const session = await auth()
     const userId = session?.user?.id
 
-    if (!userId) {
-        return { success: false, error: "Session not found, Login to fix issue" }
-    }
+    if (!userId) return { success: false, error: "Session expired. Please login." }
+
+    const amount = parseFloat(formData.get('amount'))
+    const recipientName = formData.get('recipientName')
+    const routingNumber = formData.get('routingNumber')
+    const accountNumber = formData.get('accountNumber')
+    const sourceAccount = formData.get('sourceAccount') // 'savings' or 'checking'
+    const pin = formData.get('pin')
+    
+    const wireFee = 25.00 
+    const totalDeduction = amount + wireFee
 
     try {
-        await client.query('BEGIN')
+        await query('BEGIN')
 
-        // 1. LOCK & CHECK BALANCE (Wire usually comes from Checking)
-        const balanceRes = await query(
-            `SELECT checking_balance FROM users WHERE id = $1 FOR UPDATE`,
+        // 1. Get User Data & Check PIN
+        const userRes = await query(
+            `SELECT u.stripe_connect_id, u.kyc_status, u.password, a.checking_balance, a.savings_balance 
+             FROM paysense_users u 
+             JOIN paysense_accounts a ON u.id = a.user_id 
+             WHERE u.id = $1 FOR UPDATE`,
             [userId]
         )
 
-        if (balanceRes.rowCount === 0) throw new Error("User not found")
+        const user = userRes.rows[0]
+        if (!user) throw new Error("Account not found.")
+        if (user.kyc_status !== 'verified') throw new Error("KYC Verification required for Wires.")
 
-        const currentBalance = balanceRes.rows[0].checking_balance
-
-        if (currentBalance < amount) {
-            throw new Error("Insufficient funds for this wire transfer")
+        // 2. Validate Balance based on source
+        const currentBalance = sourceAccount === 'savings' ? user.savings_balance : user.checking_balance
+        if (parseFloat(currentBalance) < totalDeduction) {
+            throw new Error(`Insufficient funds in ${sourceAccount} account.`)
         }
 
-        // 2. DEDUCT FUNDS IMMEDIATELY
+        // 3. Move money in Stripe Connect
+        const transfer = await stripe.transfers.create({
+            amount: Math.round(amount * 100),
+            currency: 'usd',
+            destination: user.stripe_connect_id,
+            description: `Wire Transfer: ${recipientName}`,
+        });
+
+        const payout = await stripe.payouts.create({
+            amount: Math.round(amount * 100),
+            currency: 'usd',
+            statement_descriptor: 'PAYSENSE WIRE',
+        }, {
+            stripeAccount: user.stripe_connect_id,
+        });
+
+        // 4. Update Database Ledger
+        const balanceColumn = sourceAccount === 'savings' ? 'savings_balance' : 'checking_balance'
         await query(
-            `UPDATE users SET checking_balance = checking_balance - $1 WHERE id = $2`,
-            [amount, userId]
+            `UPDATE paysense_accounts SET ${balanceColumn} = ${balanceColumn} - $1 WHERE user_id = $2`,
+            [totalDeduction, userId]
         )
 
-        // 3. CREATE PENDING WIRE RECORD
-        // Store routing details in a JSONB column or separate beneficiaries table
-        await client.query(
-            `INSERT INTO transactions (user_id, amount, type, status, metadata) VALUES ($1, $2, 'wire_outbound', 'pending', $3)`,
-            [
-                userId,
-                amount,
-                JSON.stringify({ recipientName, routingNumber, accountNumber })
-            ]
+        // 5. Record Transaction
+        await query(
+            `INSERT INTO paysense_transactions (user_id, amount, type, description, status, reference_id) 
+             VALUES ($1, $2, 'wire_transfer', $3, 'processing', $4)`,
+            [userId, amount, `Wire to ${recipientName}`, 'processing', payout.id]
         )
 
         await query('COMMIT')
-        return { success: true, message: "Wire transfer initiated and pending approval." }
+        revalidatePath('/app')
+        return { success: true }
 
     } catch (error) {
         await query('ROLLBACK')
