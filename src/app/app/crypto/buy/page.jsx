@@ -21,7 +21,7 @@ import { TokenETH } from '@web3icons/react'
 import Link from "next/link"
 
 // Import the server functions
-import { getCryptoRate, processBuyCrypto } from "@/server-functions/crypto"
+import { getCryptoRate, processBuyCrypto } from "@/server-functions/buy-crypto"
 
 export default function BuyCryptoPage() {
     const { accountDetails } = useContext(AccountDetailsContext)
