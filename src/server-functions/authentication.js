@@ -109,37 +109,44 @@ export async function credentialsAction(main_email, main_password) {
     }
 
     try {
+        // Query the user from your custom table
         const { rows } = await query("SELECT * FROM paysense_users WHERE email = $1", [email]);
         const user = rows[0];
 
+        // 1. Check if user exists and isn't a social-only account
         if (!user || user.password === "social") {
             return { success: false, message: "Invalid email or password" };
         }
 
+        // 2. Verify Bcrypt password
         const isValid = await bcrypt.compare(password, user.password);
         if (!isValid) return { success: false, message: "Invalid email or password" };
 
+        // 3. Handle Email Verification Redirect
         if (!user.verified) {
-            await create_otp(email);
+            await create_otp(email); // Re-send OTP if they aren't verified
             return {
                 success: false,
                 isUnverified: true,
                 email: user.email,
-                message: "Email not verified. A new OTP has been sent."
+                message: "Please verify your email to continue."
             };
         }
 
+        // 4. Log the session via NextAuth
+        // Note: Make sure your auth.ts is configured to handle 'role' in the session
         await signIn("credentials", {
             id: user.id,
             name: `${user.first_name} ${user.last_name}`,
             email: user.email,
+            role: user.role || 'user', // Essential for your Admin section
             redirect: false
         });
 
         return { success: true };
     } catch (e) {
         console.error("Login error:", e);
-        return { success: false, message: "Authentication failed" };
+        return { success: false, message: "Something went wrong. Please try again." };
     }
 }
 
@@ -257,6 +264,8 @@ export async function getCurrentUser() {
             const insert_account_details = await query("INSERT INTO paysense_accounts (user_id, checking_balance, savings_balance) VALUES ($1, $2, $3) returning id, user_id, checking_balance, savings_balance", [user_id, 0.00, 0.00])
             return { success: true, user_details, account_details: insert_account_details.rows };
         }
+
+        console.log(user_details)
 
         return { success: true, user_details, account_details };
 
