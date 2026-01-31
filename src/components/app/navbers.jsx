@@ -58,7 +58,7 @@ export function DesktopNaBar() {
                 <DesktopNavItem href="/app/settings" icon={<Settings size={20} />} label="Settings" />
             </nav>
 
-            <button className="flex items-center gap-3 p-4 text-destructive hover:bg-destructive/10 rounded-brand-button transition-colors mt-auto font-medium">
+            <button onClick={() => signOut()} className="flex items-center gap-3 p-4 text-destructive hover:bg-destructive/10 rounded-brand-button transition-colors mt-auto font-medium">
                 <LogOut size={20} /> Logout
             </button>
         </aside>

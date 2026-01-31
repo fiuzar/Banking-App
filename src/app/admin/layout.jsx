@@ -6,6 +6,7 @@ import {
   ArrowLeftRight, 
   ShieldCheck, 
   LayoutDashboard, 
+  Logs,
   Settings, 
   LogOut,
   Search,
@@ -41,6 +42,7 @@ export default async function AdminLayout({ children }) {
           <AdminNavLink href="/admin/users" icon={<Users size={18} />} label="User Management" />
           <AdminNavLink href="/admin/wires" icon={<ArrowLeftRight size={18} />} label="Wire Transfers" />
           <AdminNavLink href="/admin/crypto" icon={<Settings size={18} />} label="Crypto Assets" />
+          <AdminNavLink href="/admin/log" icon={<Logs size={18} />} label="Logs" />
         </nav>
 
         <div className="p-4 border-t border-slate-800">

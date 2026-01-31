@@ -224,7 +224,7 @@ export async function otpVerification(pin, email) {
     }
 }
 
-async function create_otp(email) {
+export async function create_otp(email) {
     const pin = Math.floor(100000 + Math.random() * 900000).toString();
     await query("DELETE FROM paysense_verify_email WHERE email = $1", [email]);
     await query("INSERT INTO paysense_verify_email (email, pin, date) VALUES ($1, $2, $3)", [email, pin, new Date()]);

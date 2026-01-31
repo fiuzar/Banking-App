@@ -7,7 +7,7 @@ import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "../ui/
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 import Link from "next/link"
-import { otpVerification, handle_Signup } from "@/server-functions/authentication" // Updated path
+import { otpVerification, handle_Signup, create_otp } from "@/server-functions/authentication" // Updated path
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
@@ -37,6 +37,11 @@ export function VerifyEmailForm({ className, ...props }) {
         }
     }
 
+    async function createOTP() {
+        const {success, message} = await create_otp(email)
+        setStatus({ success, message: message || (success ? "Verified successfully!" : "Error") })
+    }
+
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
             <Card>
@@ -53,7 +58,10 @@ export function VerifyEmailForm({ className, ...props }) {
                             </Alert>
                         )}
                         <div className="grid gap-3">
+                        <div className="flex justify-between">
                             <Label>One-Time Password</Label>
+                            <Button variant={`ghost`} className="underline text-green-800">Resend OTP</Button>
+                            </div>
                             <div className="flex justify-center">
                                 <InputOTP maxLength={6} value={otp} onChange={setOtp}>
                                     <InputOTPGroup>
