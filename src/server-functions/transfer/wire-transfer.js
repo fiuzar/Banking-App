@@ -75,6 +75,11 @@ export async function initiateWireTransfer(formData) {
             [userId, amount, `Wire to ${recipientName}`, 'processing', payout.id]
         )
 
+        await query(
+            `INSERT INTO paysense_notifications (user_id, type, title, message) VALUES ($1, $2, $3, $4)`,
+            [senderId, "Pending", "Wire Transfer", `Your transfer of ${amount} has been initiated, this takes up to 2 business days to complete`]
+        )
+
         await query('COMMIT')
         revalidatePath('/app')
         return { success: true }

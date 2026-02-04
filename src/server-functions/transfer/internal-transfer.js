@@ -2,6 +2,7 @@
 
 import { query } from "@/dbh"
 import { auth } from "@/auth"
+import { revalidatePath } from 'next/cache'
 
 export async function internalTransfer(transfer_amount, from_account) {
     const session = await auth()
@@ -67,10 +68,16 @@ export async function internalTransfer(transfer_amount, from_account) {
             [userId, amount, `Transfer from ${from_account} to ${toAccount}`]
         )
 
+        await query(
+            `INSERT INTO paysense_notifications (user_id, type, title, message) VALUES ($1, $2, $3, $4)`,
+            [userId, "success", "Internal Transfer", `Successfully transferred ${amount} from ${from_account} to ${toAccount}`]
+        )
+
         // 6. COMMIT TRANSACTION
         await query('COMMIT')
 
-        console.log(account_details[0])
+        revalidatePath('/app');
+        revalidatePath('/app/transfer/internal');
 
         return { success: true, account_details: account_details[0] }
 

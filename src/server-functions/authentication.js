@@ -287,9 +287,6 @@ export async function getCurrentUser() {
 
             return { success: true, user_details, account_details: insert_account_details.rows };
         }
-
-            console.log(user_details, account_details)
-
         return { success: true, user_details, account_details };
 
     } catch (e) {

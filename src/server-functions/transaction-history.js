@@ -3,13 +3,11 @@
 import { query } from "@/dbh"
 import { auth } from "@/auth"
 
-export async function get_transaction_history_list(account_type, start, end, offset = 0) {
+export async function get_transaction_history_list(account_type, offset = 0) {
     const session = await auth();
     const userId = session?.user?.id;
 
-    if (!userId) {
-        return { success: false, message: "Unauthorized", history: [] };
-    }
+    if (!userId) return { success: false, message: "Unauthorized", history: [] };
 
     try {
         const res = await query(
@@ -20,27 +18,27 @@ export async function get_transaction_history_list(account_type, start, end, off
                 amount, 
                 type, 
                 category,
-                status
+                status,
+                -- Logic to determine color/icon in UI
+                CASE 
+                    WHEN type IN ('deposit', 'crypto_sale', 'internal_transfer_in') THEN 'credit'
+                    ELSE 'debit'
+                END as direction
              FROM paysense_transactions 
              WHERE user_id = $1 
              AND account_type = $2
              ORDER BY created_at DESC 
-             LIMIT 20 OFFSET $3`,
+             LIMIT 10 OFFSET $3`,
             [userId, account_type, offset]
         );
 
-        // Return the rows, or an empty array if none found
         return { 
             success: true, 
-            message: "History fetched", 
-            history: res.rows || [] 
+            history: res.rows || [],
+            hasMore: res.rows.length === 10 
         };
     } catch (error) {
         console.error("Fetch History Error:", error);
-        return { 
-            success: false, 
-            message: "Database error", 
-            history: [] 
-        };
+        return { success: false, history: [] };
     }
 }

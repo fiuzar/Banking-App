@@ -162,22 +162,25 @@ export default function AccountDetails() {
 }
 
 function TransactionRow({ tx }) {
+    // direction is 'credit' (green/plus) or 'debit' (slate/minus)
+    const isCredit = tx.direction === 'credit';
+
     return (
         <div className="flex justify-between items-center group cursor-pointer">
             <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${tx.type === 'credit' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
-                    {tx.type === 'credit' ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isCredit ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                    {isCredit ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}
                 </div>
                 <div>
                     <p className="font-bold text-slate-900 group-hover:text-green-800 transition-colors">{tx.name}</p>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{tx.date} • {tx.category}</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{tx.date} • {tx.type.replace('_', ' ')}</p>
                 </div>
             </div>
             <div className="text-right">
-                <p className={`font-black ${tx.type === 'credit' ? 'text-emerald-600' : 'text-slate-900'}`}>
-                    {tx.type === 'credit' ? '+' : '-'}${Math.abs(tx.amount).toFixed(2)}
+                <p className={`font-black ${isCredit ? 'text-emerald-600' : 'text-slate-900'}`}>
+                    {isCredit ? '+' : '-'}${parseFloat(tx.amount).toLocaleString(undefined, {minimumFractionDigits: 2})}
                 </p>
-                <p className="text-[9px] text-slate-300 font-bold uppercase italic">{tx.status || 'Settled'}</p>
+                <p className="text-[9px] text-slate-300 font-bold uppercase italic">{tx.status}</p>
             </div>
         </div>
     )

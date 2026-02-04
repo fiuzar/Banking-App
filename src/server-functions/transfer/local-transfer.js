@@ -82,6 +82,11 @@ export async function processLocalUSDTransfer(formData) {
             throw new Error("Recipient account not found.");
         }
 
+        await query(
+            `INSERT INTO paysense_notifications (user_id, type, title, message) VALUES ($1, $2, $3, $4)`,
+            [senderId, "success", "Local Transfer", `Successfully transferred ${amount} to ${targetAccNo}`]
+        )
+
         await client.query('COMMIT');
         revalidatePath('/app');
         return { success: true, account_details: account_details[0] };

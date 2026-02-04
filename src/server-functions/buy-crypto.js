@@ -70,10 +70,8 @@ export async function processCryptoTrade(formData) {
     if (!assetColumn) return { success: false, error: "Unsupported crypto asset" };
     if (isNaN(usdAmount) || usdAmount <= 0) return { success: false, error: "Invalid amount" };
 
-    const client = await pool.connect();
-
     try {
-        await client.query('BEGIN');
+        await query('BEGIN');
 
         // 1. Get Live Price
         const rateResult = await getCryptoRate(assetSymbol);
@@ -85,7 +83,7 @@ export async function processCryptoTrade(formData) {
         const cryptoEquivalent = usdAmount / currentPrice;
 
         // 2. Fetch current balances with a row lock
-        const accountRes = await client.query(
+        const accountRes = await query(
             `SELECT savings_balance, ${assetColumn} FROM paysense_accounts WHERE user_id = $1 FOR UPDATE`,
             [userId]
         );
@@ -98,7 +96,7 @@ export async function processCryptoTrade(formData) {
             }
 
             // Deduct USD, Add Crypto
-            await client.query(
+            await query(
     `UPDATE paysense_accounts 
      SET savings_balance = CAST(savings_balance AS NUMERIC) - $1, 
          ${assetColumn} = COALESCE(CAST(${assetColumn} AS NUMERIC), 0) + $2 
@@ -114,7 +112,7 @@ export async function processCryptoTrade(formData) {
             const netCredit = usdAmount - networkFee;
 
             // Deduct Crypto, Add USD
-            await client.query(
+            await query(
     `UPDATE paysense_accounts 
      SET ${assetColumn} = CAST(${assetColumn} AS NUMERIC) - $1, 
          savings_balance = COALESCE(CAST(savings_balance AS NUMERIC), 0) + $2 
@@ -124,7 +122,7 @@ export async function processCryptoTrade(formData) {
         }
 
         // 3. Log the Transaction
-        await client.query(
+        await query(
             `INSERT INTO paysense_transactions (
                 user_id, amount, type, status, description, metadata
             ) VALUES ($1, $2, $3, 'completed', $4, $5)`,
@@ -143,7 +141,7 @@ export async function processCryptoTrade(formData) {
             ]
         );
 
-        await client.query('COMMIT');
+        await query('COMMIT');
         // Fetch fresh data to return to the frontend
         const updatedAccount = await query(
             "SELECT * FROM paysense_accounts WHERE user_id = $1",
@@ -160,11 +158,9 @@ export async function processCryptoTrade(formData) {
         };
 
     } catch (error) {
-        await client.query('ROLLBACK');
+        await query('ROLLBACK');
         console.log(error);
         return { success: false, error: error.message };
-    } finally {
-        client.release();
     }
 }
 
