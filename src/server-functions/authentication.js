@@ -6,6 +6,7 @@ import nodemailer from "nodemailer"
 import bcrypt from "bcryptjs"
 import { revalidatePath } from "next/cache";
 import crypto from "crypto"; // Native Node.js module
+import {unstable_noStore as noStore} from "next/cache"
 
 // --- REQUEST PASSWORD RESET ---
 export async function requestPasswordReset(email_input) {
@@ -249,6 +250,7 @@ export async function create_otp(email) {
 
 // --- GET CURRENT USER ---
 export async function getCurrentUser() {
+    noStore()
     const session = await auth();
     const user_id = session?.user?.id
 
@@ -257,21 +259,44 @@ export async function getCurrentUser() {
     }
 
     try {
-        const { rows: user_details } = await query("SELECT id, first_name, last_name, email, phone, image FROM paysense_users WHERE id = $1", [user_id]);
-        const { rows: account_details } = await query("SELECT id, user_id, checking_balance, savings_balance FROM paysense_accounts WHERE user_id = $1", [user_id]);
+        // 1. Get User Details
+        const { rows: user_details } = await query(
+            "SELECT id, first_name, last_name, email, phone, image FROM paysense_users WHERE id = $1", 
+            [user_id]
+        );
 
-        if(!account_details[0]){
-            const insert_account_details = await query("INSERT INTO paysense_accounts (user_id, checking_balance, savings_balance) VALUES ($1, $2, $3) returning id, user_id, checking_balance, savings_balance", [user_id, 0.00, 0.00])
+        // 2. Get Account Details (Including the new account number columns)
+        const { rows: account_details } = await query(
+            `SELECT * FROM paysense_accounts WHERE user_id = $1`, 
+            [user_id]
+        );
+
+        // 3. If no account exists, create one with unique numbers
+        if (!account_details[0]) {
+            // Generate two different 10-digit numbers
+            const checkingNum = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+            const savingsNum = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+
+            const insert_account_details = await query(
+                `INSERT INTO paysense_accounts 
+                 (user_id, checking_balance, savings_balance, checking_account_number, savings_account_number) 
+                 VALUES ($1, $2, $3, $4, $5) 
+                 RETURNING id, user_id, checking_balance, savings_balance, checking_account_number, savings_account_number`, 
+                [user_id, 0.00, 0.00, checkingNum, savingsNum]
+            );
+
             return { success: true, user_details, account_details: insert_account_details.rows };
         }
 
-        console.log(user_details)
+            console.log(user_details, account_details)
 
         return { success: true, user_details, account_details };
 
     } catch (e) {
+        // If a duplicate key error happens (highly unlikely with 10 digits), 
+        // the unique constraint will catch it here.
         console.error("Get current user error:", e);
-        return { success: false, message: "no" };
+        return { success: false, message: "Database sync error" };
     }
 }
 

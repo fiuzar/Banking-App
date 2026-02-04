@@ -52,7 +52,7 @@ export async function internalTransfer(transfer_amount, from_account) {
 
         // 4. CREDIT TO DESTINATION
         const { rows: account_details } = await query(
-            `UPDATE paysense_accounts SET ${toColumn} = ${toColumn} + $1 WHERE id = $2 returning id, ${toColumn}, ${fromColumn}`,
+            `UPDATE paysense_accounts SET ${toColumn} = ${toColumn} + $1 WHERE id = $2 returning *`,
             [amount, userId]
         )
 
@@ -70,7 +70,7 @@ export async function internalTransfer(transfer_amount, from_account) {
         // 6. COMMIT TRANSACTION
         await query('COMMIT')
 
-        console.log("Internal Transfer Successful")
+        console.log(account_details[0])
 
         return { success: true, account_details: account_details[0] }
 

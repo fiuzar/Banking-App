@@ -47,107 +47,121 @@ export async function getCryptoRate(symbol) {
     }
 }
 
-/**
- * Processes the crypto purchase transaction
- */
-export async function processBuyCrypto(formData) {
+export async function processCryptoTrade(formData) {
     const session = await auth();
     if (!session?.user) return { success: false, error: "Unauthorized" };
 
-    const usdAmount = parseFloat(formData.get('amount'));
-    const asset = formData.get('asset')?.toUpperCase();
+    const usdAmount = parseFloat(formData.get('amount')); // The USD value the user wants to trade
+    const assetSymbol = formData.get('asset')?.toUpperCase(); 
+    const mode = formData.get('mode'); // 'buy' or 'sell'
     const userId = session.user.id;
     const networkFee = 0.99;
-    const totalFiatCost = usdAmount + networkFee;
+    
+    // Mapping Symbols to Database Column Names
+    const symbolToColumn = {
+        'BTC': 'bitcoin',
+        'ETH': 'ethereum',
+        'USDT': 'usdt',
+        'SOL': 'solana',
+        'LTC': 'litecoin'
+    };
 
-    if (isNaN(usdAmount) || usdAmount <= 0) {
-        return { success: false, error: "Invalid amount" };
-    }
+    const assetColumn = symbolToColumn[assetSymbol];
+    if (!assetColumn) return { success: false, error: "Unsupported crypto asset" };
+    if (isNaN(usdAmount) || usdAmount <= 0) return { success: false, error: "Invalid amount" };
 
     const client = await pool.connect();
 
     try {
         await client.query('BEGIN');
 
-        // 1. Check KYC Status
-        const userRes = await client.query(
-            `SELECT kyc_status FROM paysense_users WHERE id = $1 FOR UPDATE`,
-            [userId]
-        );
-
-        if (userRes.rows[0]?.kyc_status !== 'verified') {
-            throw new Error("Identity verification (KYC) is required to trade crypto.");
-        }
-
-        // 2. Validate Savings Balance (NULL-safe check)
-        const accountRes = await client.query(
-            `SELECT COALESCE(savings_balance, 0) as balance FROM paysense_accounts WHERE user_id = $1 FOR UPDATE`,
-            [userId]
-        );
-
-        if (!accountRes.rows[0] || parseFloat(accountRes.rows[0].balance) < totalFiatCost) {
-            throw new Error("Insufficient funds in your USD Savings account.");
-        }
-
-        // 3. Get Live Price via internal function to ensure consistency
-        const rateResult = await getCryptoRate(asset);
+        // 1. Get Live Price
+        const rateResult = await getCryptoRate(assetSymbol);
         if (!rateResult.success || !rateResult.rate) {
             throw new Error("Could not confirm market price. Please try again.");
         }
 
         const currentPrice = rateResult.rate;
-        const cryptoToReceive = usdAmount / currentPrice;
+        const cryptoEquivalent = usdAmount / currentPrice;
 
-        // 4. Update Balances (COALESCE handles potential NULLs in coin columns)
-        const assetColumn = asset.toLowerCase();
-        
-        // Deduct USD from Savings
-        await client.query(
-            `UPDATE paysense_accounts 
-             SET savings_balance = COALESCE(savings_balance, 0) - $1 
-             WHERE user_id = $2`,
-            [totalFiatCost, userId]
+        // 2. Fetch current balances with a row lock
+        const accountRes = await client.query(
+            `SELECT savings_balance, ${assetColumn} FROM paysense_accounts WHERE user_id = $1 FOR UPDATE`,
+            [userId]
         );
+        const account = accountRes.rows[0];
 
-        // Credit Crypto Asset
-        await client.query(
-            `UPDATE paysense_accounts 
-             SET ${assetColumn} = COALESCE(${assetColumn}, 0) + $1 
-             WHERE user_id = $2`,
-            [cryptoToReceive, userId]
-        );
+        if (mode === 'buy') {
+            const totalCost = usdAmount + networkFee;
+            if (parseFloat(account.savings_balance) < totalCost) {
+                throw new Error("Insufficient USD Savings balance.");
+            }
 
-        // 5. Log Transaction
+            // Deduct USD, Add Crypto
+            await client.query(
+    `UPDATE paysense_accounts 
+     SET savings_balance = CAST(savings_balance AS NUMERIC) - $1, 
+         ${assetColumn} = COALESCE(CAST(${assetColumn} AS NUMERIC), 0) + $2 
+     WHERE user_id = $3`,
+    [totalCost, cryptoEquivalent, userId]
+);
+
+        } else if (mode === 'sell') {
+            if (parseFloat(account[assetColumn]) < cryptoEquivalent) {
+                throw new Error(`Insufficient ${assetSymbol} balance to complete this sale.`);
+            }
+
+            const netCredit = usdAmount - networkFee;
+
+            // Deduct Crypto, Add USD
+            await client.query(
+    `UPDATE paysense_accounts 
+     SET ${assetColumn} = CAST(${assetColumn} AS NUMERIC) - $1, 
+         savings_balance = COALESCE(CAST(savings_balance AS NUMERIC), 0) + $2 
+     WHERE user_id = $3`,
+    [cryptoEquivalent, netCredit, userId]
+);
+        }
+
+        // 3. Log the Transaction
         await client.query(
             `INSERT INTO paysense_transactions (
                 user_id, amount, type, status, description, metadata
-            ) VALUES ($1, $2, 'crypto_purchase', 'completed', $3, $4)`,
+            ) VALUES ($1, $2, $3, 'completed', $4, $5)`,
             [
                 userId,
-                totalFiatCost,
-                `Purchased ${cryptoToReceive.toFixed(8)} ${asset}`,
+                usdAmount,
+                mode === 'buy' ? 'crypto_purchase' : 'crypto_sale',
+                `${mode === 'buy' ? 'Bought' : 'Sold'} ${cryptoEquivalent.toFixed(8)} ${assetSymbol}`,
                 JSON.stringify({
-                    asset: asset,
+                    asset: assetSymbol,
                     execution_price: currentPrice,
-                    crypto_amount: cryptoToReceive,
-                    fiat_spent: usdAmount,
-                    fee: networkFee
+                    crypto_amount: cryptoEquivalent,
+                    fee: networkFee,
+                    mode: mode
                 })
             ]
         );
 
         await client.query('COMMIT');
+        // Fetch fresh data to return to the frontend
+        const updatedAccount = await query(
+            "SELECT * FROM paysense_accounts WHERE user_id = $1",
+            [userId]
+        );
 
         revalidatePath('/app');
+        
         return { 
             success: true, 
-            received: cryptoToReceive.toFixed(8), 
-            asset: asset 
+            received: mode === 'buy' ? cryptoEquivalent.toFixed(8) : usdAmount.toFixed(2), 
+            asset: assetSymbol,
+            updatedData: updatedAccount.rows[0] // Add this!
         };
 
     } catch (error) {
         await client.query('ROLLBACK');
-        console.error("Crypto Purchase Transaction Failed:", error.message);
+        console.log(error);
         return { success: false, error: error.message };
     } finally {
         client.release();

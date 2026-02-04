@@ -63,8 +63,8 @@ export async function processLocalUSDTransfer(formData) {
         }
 
         // 2. Subtract from Sender
-        await client.query(
-            `UPDATE paysense_accounts SET checking_balance = checking_balance - $1 WHERE user_id = $2`,
+        const {rows: account_details} = await client.query(
+            `UPDATE paysense_accounts SET checking_balance = checking_balance - $1 WHERE user_id = $2 returning *`,
             [totalDeduction, senderId]
         );
 
@@ -84,9 +84,11 @@ export async function processLocalUSDTransfer(formData) {
 
         await client.query('COMMIT');
         revalidatePath('/app');
-        return { success: true };
+        return { success: true, account_details: account_details[0] };
+        
     } catch (e) {
         await client.query('ROLLBACK');
+        console.log(e)
         return { success: false, error: e.message };
     } finally {
         client.release();

@@ -21,23 +21,31 @@ export default function Dashboard() {
 		return isNaN(num) ? "0.00" : num.toFixed(2)
 	}
 
-	const accountCards = [
+	// Helper to mask account numbers (e.g., "1234567890" -> ".... 7890")
+const maskAcc = (number) => {
+    if (!number) return ".... 0000";
+    return `.... ${number.slice(-4)}`;
+};
+
+const accountCards = [
     { 
         type: "savings",
         title: t("savings", "SAVINGS"), 
         amount: `$${formatAmount(accountDetails?.savings_balance)}`, 
-        acc: ".... 6708", 
+        // Dynamic dynamic savings number
+        acc: maskAcc(accountDetails?.savings_account_number), 
         color: "from-green-800 to-green-950" 
     },
     { 
         type: "checking",
         title: t("checking", "CHECKING"), 
         amount: `$${formatAmount(accountDetails?.checking_balance)}`, 
-        acc: ".... 1234", 
+        // Dynamic dynamic checking number
+        acc: maskAcc(accountDetails?.checking_account_number), 
         color: "from-green-800 to-slate-950" 
     },
     { isVirtual: true }
-]
+];
 	const cardsContainerRef = useRef(null)
 	const autoSwitchInterval = 4000 // ms
 

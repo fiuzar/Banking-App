@@ -15,34 +15,39 @@ import {
     AlertCircle, 
     RefreshCcw, 
     XCircle,
-    Info
+    Info,
+    Wallet
 } from "lucide-react"
 import { TokenETH } from '@web3icons/react'
 import Link from "next/link"
 
 // Import the server functions
-import { getCryptoRate, processBuyCrypto } from "@/server-functions/buy-crypto"
+import { getCryptoRate, processCryptoTrade } from "@/server-functions/buy-crypto"
 
 export default function BuyCryptoPage() {
-    const { accountDetails } = useContext(AccountDetailsContext)
+    // Access context and the refresh function (if available in your context)
+    const { accountDetails, setAccountDetails } = useContext(AccountDetailsContext)
     
-    // 1. Asset Configuration
+    // 1. Asset Configuration - Updated to match the new DB column names
     const ASSETS = useMemo(() => [
-        { name: "Bitcoin", symbol: "BTC", color: "bg-orange-500", icon: <Bitcoin size={20} />, asset: accountDetails?.btc || 0 },
-        { name: "Ethereum", symbol: "ETH", color: "bg-indigo-500", icon: <TokenETH variant="branded" size={20} />, asset: accountDetails?.eth || 0 },
-        { name: "Tether", symbol: "USDT", color: "bg-green-500", icon: <DollarSign size={20} />, asset: accountDetails?.usdt || 0 },
-        { name: "Litecoin", symbol: "LTC", color: "bg-gray-400", icon: <Coins size={20} />, asset: accountDetails?.ltc || 0 },
-        { name: "Solana", symbol: "SOL", color: "bg-purple-600", icon: <Zap size={20} />, asset: accountDetails?.solana || 0 },
-    ], [accountDetails]);
+    { name: "Bitcoin", symbol: "BTC", color: "bg-orange-500", minUsd: 10, icon: <Bitcoin size={20} />, balance: accountDetails?.bitcoin || 0 },
+    { name: "Ethereum", symbol: "ETH", color: "bg-indigo-500", minUsd: 10, icon: <TokenETH variant="branded" size={20} />, balance: accountDetails?.ethereum || 0 },
+    { name: "Tether", symbol: "USDT", color: "bg-green-500", minUsd: 5, icon: <DollarSign size={20} />, balance: accountDetails?.usdt || 0 },
+    { name: "Litecoin", symbol: "LTC", color: "bg-gray-400", minUsd: 2, icon: <Coins size={20} />, balance: accountDetails?.litecoin || 0 },
+    { name: "Solana", symbol: "SOL", color: "bg-purple-600", minUsd: 5, icon: <Zap size={20} />, balance: accountDetails?.solana || 0 },
+], [accountDetails]);
 
     // 2. State Management
-    const [status, setStatus] = useState('idle') // 'idle' | 'processing' | 'success' | 'error'
+    const [mode, setMode] = useState('buy') // 'buy' | 'sell'
+    const [status, setStatus] = useState('idle') 
     const [amount, setAmount] = useState("")
     const [selectedAsset, setSelectedAsset] = useState(ASSETS[0])
     const [showAssetList, setShowAssetList] = useState(false)
     const [price, setPrice] = useState(null)
     const [loadingPrice, setLoadingPrice] = useState(false)
     const [errorMessage, setErrorMessage] = useState("")
+
+    const savingsBalance = parseFloat(accountDetails?.savings_balance || 0)
 
     // 3. Price Fetching Logic
     const fetchPrice = useCallback(async () => {
@@ -61,18 +66,33 @@ export default function BuyCryptoPage() {
     }, [fetchPrice])
 
     // 4. Transaction Handler
-    const handlePurchase = async () => {
+    const handleTransaction = async () => {
         const numAmount = parseFloat(amount)
-        const totalToPay = numAmount + 0.99 // Including the $0.99 fee
 
-        // Local Validation
+    
+    // Check against the selected asset's minimum
+    if (numAmount < selectedAsset.minUsd) {
+        setErrorMessage(`Minimum trade for ${selectedAsset.name} is $${selectedAsset.minUsd}.`);
+        return;
+    }
+
+        const fee = 0.99
+        
         if (!numAmount || numAmount <= 0) {
             setErrorMessage("Please enter a valid amount.")
             return
         }
 
-        if (totalToPay > (accountDetails?.savings_balance || 0)) {
+        // Buy Validation: Check USD Savings
+        if (mode === 'buy' && (numAmount + fee) > savingsBalance) {
             setErrorMessage("Insufficient funds in your USD Savings.")
+            return
+        }
+
+        // Sell Validation: Check Crypto Balance
+        const cryptoToSell = numAmount / price
+        if (mode === 'sell' && cryptoToSell > parseFloat(selectedAsset.balance)) {
+            setErrorMessage(`Insufficient ${selectedAsset.symbol} balance.`)
             return
         }
 
@@ -83,58 +103,80 @@ export default function BuyCryptoPage() {
             const formData = new FormData()
             formData.append('amount', amount)
             formData.append('asset', selectedAsset.symbol)
+            formData.append('mode', mode) 
 
-            const res = await processBuyCrypto(formData)
+            // CHANGED: calling the new universal trade function
+            const res = await processCryptoTrade(formData)
 
             if (res.success) {
+                setAccountDetails(res.updatedData)
                 setStatus('success')
             } else {
-                setErrorMessage(res.error || "Transaction declined by bank.")
+                setErrorMessage(res.error || "Transaction declined.")
                 setStatus('error')
             }
         } catch (err) {
-            setErrorMessage("Connection lost. Please check your internet.")
+            setErrorMessage("Connection lost. Please try again.")
             setStatus('error')
         }
     }
 
-    // 5. Conditional Rendering for States
-    if (status === 'success') return <SuccessState asset={selectedAsset} amount={amount} price={price} />
+    if (status === 'success') return <SuccessState mode={mode} asset={selectedAsset} amount={amount} price={price} />
     if (status === 'error') return <ErrorState message={errorMessage} onRetry={() => setStatus('idle')} />
 
     return (
         <div className="min-h-screen bg-slate-50 pb-10">
             {/* Header */}
-            <div className="bg-green-900 p-6 text-white flex items-center justify-between shadow-lg">
-                <div className="flex items-center gap-4">
-                    <Link href="/app"><ArrowLeft size={24} /></Link>
-                    <h1 className="text-xl font-bold">Buy Crypto</h1>
+            <div className="bg-green-900 p-8 pt-12 text-white rounded-b-[40px] shadow-lg">
+                <div className="flex items-center justify-between mb-6">
+                    <Link href="/app" className="p-2 bg-white/10 rounded-full"><ArrowLeft size={20}/></Link>
+                    <div className="bg-white/10 px-4 py-1 rounded-full flex items-center gap-2">
+                        <Wallet size={14} className="text-green-400" />
+                        <span className="text-xs font-bold uppercase tracking-widest">
+                            Savings: ${savingsBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
+                    </div>
                 </div>
-                <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
-                    <Info size={20} className="text-white/60" />
-                </div>
+                <h1 className="text-2xl font-black">Trade Crypto</h1>
+                <p className="text-white/60 text-xs">Market-rate instant execution</p>
             </div>
 
-            <div className="max-w-md mx-auto p-6 space-y-6">
+            <div className="max-w-md mx-auto p-6 -mt-8 space-y-4">
+                
+                {/* Buy/Sell Toggle */}
+                <div className="bg-white p-1 rounded-2xl flex shadow-sm border border-slate-200">
+                    <button 
+                        onClick={() => { setMode('buy'); setAmount(""); }}
+                        className={`flex-1 py-3 rounded-xl font-black text-sm transition-all ${mode === 'buy' ? 'bg-green-900 text-white shadow-md' : 'text-slate-400'}`}
+                    >
+                        BUY
+                    </button>
+                    <button 
+                        onClick={() => { setMode('sell'); setAmount(""); }}
+                        className={`flex-1 py-3 rounded-xl font-black text-sm transition-all ${mode === 'sell' ? 'bg-green-900 text-white shadow-md' : 'text-slate-400'}`}
+                    >
+                        SELL
+                    </button>
+                </div>
+
                 {/* Asset Selector */}
                 <div className="relative">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Cryptocurrency</label>
                     <div
-                        className="bg-white border border-slate-200 p-5 rounded-[24px] flex justify-between items-center cursor-pointer shadow-sm hover:border-green-800 transition-all active:scale-[0.98]"
+                        className="bg-white border border-slate-200 p-5 rounded-[24px] flex justify-between items-center cursor-pointer shadow-sm"
                         onClick={() => setShowAssetList(!showAssetList)}
                     >
                         <div className="flex items-center gap-4">
-                            <div className={`w-12 h-12 ${selectedAsset.color} rounded-full flex items-center justify-center text-white shadow-inner`}>
+                            <div className={`w-12 h-12 ${selectedAsset.color} rounded-full flex items-center justify-center text-white`}>
                                 {selectedAsset.icon}
                             </div>
                             <div>
                                 <p className="font-extrabold text-slate-900">{selectedAsset.name}</p>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
-                                    Balance: {parseFloat(selectedAsset.asset).toFixed(6)} {selectedAsset.symbol}
+                                <p className="text-[10px] text-slate-400 font-bold uppercase">
+                                    Your {selectedAsset.symbol}: {parseFloat(selectedAsset.balance).toFixed(6)}
                                 </p>
                             </div>
                         </div>
-                        <ChevronDown className={`text-slate-300 transition-transform duration-300 ${showAssetList ? 'rotate-180' : ''}`} />
+                        <ChevronDown className={`text-slate-300 transition-transform ${showAssetList ? 'rotate-180' : ''}`} />
                     </div>
 
                     {showAssetList && (
@@ -142,7 +184,7 @@ export default function BuyCryptoPage() {
                             {ASSETS.map(asset => (
                                 <div
                                     key={asset.symbol}
-                                    className={`flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-slate-50 transition-colors ${asset.symbol === selectedAsset.symbol ? "bg-green-50/50" : ""}`}
+                                    className="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-slate-50 border-b border-slate-50 last:border-none"
                                     onClick={() => { setSelectedAsset(asset); setShowAssetList(false); }}
                                 >
                                     <div className="flex items-center gap-3">
@@ -157,114 +199,92 @@ export default function BuyCryptoPage() {
                 </div>
 
                 {/* Amount Input Card */}
-                <div className="bg-white p-8 rounded-[32px] border border-slate-200 shadow-sm text-center relative overflow-hidden">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Buy Amount (USD)</p>
-                    <div className="relative inline-block">
-                        <span className="absolute -left-8 top-1/2 -translate-y-1/2 text-3xl font-bold text-green-900/30">$</span>
+                <div className="bg-white p-8 rounded-[32px] border border-slate-200 shadow-xl text-center">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
+                        {mode === 'buy' ? 'Spend USD' : 'Receive USD'}
+                    </p>
+                    <div className="flex items-center justify-center">
+                        <span className="text-3xl font-bold text-green-900/30 mr-2">$</span>
                         <input
                             type="number"
-                            inputMode="decimal"
                             value={amount}
-                            onChange={(e) => {
-                                setAmount(e.target.value)
-                                if(errorMessage) setErrorMessage("")
-                            }}
+                            onChange={(e) => { setAmount(e.target.value); setErrorMessage(""); }}
                             placeholder="0.00"
-                            className="bg-transparent text-center text-6xl font-black text-green-900 outline-none w-full max-w-[240px] placeholder:text-slate-100"
+                            className="bg-transparent text-center text-6xl font-black text-green-900 outline-none w-full max-w-[200px] placeholder:text-slate-100"
                         />
                     </div>
 
-                    <div className="mt-6 flex flex-col items-center gap-1">
+                    <div className="mt-6 flex flex-col items-center gap-2">
                         {loadingPrice ? (
-                            <div className="flex items-center gap-2 text-slate-300 text-[10px] font-bold animate-pulse uppercase tracking-widest">
-                                <Loader2 size={12} className="animate-spin" /> Updating Market Price
-                            </div>
+                            <Loader2 size={16} className="animate-spin text-slate-300" />
                         ) : (
                             <p className="text-xs text-slate-500 font-bold bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
                                 1 {selectedAsset.symbol} = ${price?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </p>
                         )}
-                        <p className="text-[11px] font-bold text-green-700 mt-2">
-                            You receive ≈ { (price && amount) ? (parseFloat(amount) / price).toFixed(8) : "0.00000000" } {selectedAsset.symbol}
+                        <p className="text-[11px] font-black text-green-700">
+                            {mode === 'buy' ? 'Receive ≈' : 'Sell ≈'} { (price && amount) ? (parseFloat(amount) / price).toFixed(8) : "0.00000000" } {selectedAsset.symbol}
                         </p>
                     </div>
 
                     {errorMessage && (
-                        <div className="mt-4 p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl flex items-center justify-center gap-2 animate-in slide-in-from-top-1">
+                        <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-xl flex items-center justify-center gap-2 animate-in slide-in-from-top-1">
                             <AlertCircle size={14} />
                             <span className="text-[11px] font-bold">{errorMessage}</span>
                         </div>
                     )}
                 </div>
 
-                {/* Summary Section */}
-                <div className="space-y-3">
-                    <div className="bg-slate-100/50 p-5 rounded-[24px] border border-slate-100 space-y-3">
-                        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
-                            <span className="text-slate-400">Payment Source</span>
-                            <span className="text-slate-900">USD Savings Account</span>
-                        </div>
-                        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
-                            <span className="text-slate-400">Network Fee</span>
-                            <span className="text-slate-900">$0.99</span>
-                        </div>
-                        <div className="h-px bg-slate-200" />
-                        <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-slate-500">Total Charged</span>
-                            <span className="text-lg font-black text-green-900">
-                                ${ (parseFloat(amount || 0) + 0.99).toFixed(2) }
-                            </span>
-                        </div>
-                    </div>
-                </div>
+                {/* Summary */}
+                <div className="bg-slate-100/50 p-5 rounded-[24px] border border-slate-100 space-y-2">
+        <div className="flex justify-between text-[10px] font-bold uppercase text-slate-400 tracking-widest">
+            <span>Market Price</span>
+            <span className="text-slate-900">${price?.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between text-[10px] font-bold uppercase text-slate-400 tracking-widest">
+            <span>Transaction Fee</span>
+            <span className="text-slate-900">$0.99</span>
+        </div>
+        <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+            <span className="text-xs font-bold text-slate-500">
+                {mode === 'buy' ? 'Total to Pay' : 'Amount to Receive'}
+            </span>
+            <span className={`text-xl font-black ${mode === 'buy' ? 'text-red-600' : 'text-green-900'}`}>
+                ${ mode === 'buy' 
+                    ? (parseFloat(amount || 0) + 0.99).toFixed(2) 
+                    : (parseFloat(amount || 0) - 0.99).toFixed(2) 
+                }
+            </span>
+        </div>
+    </div>
 
                 <Button
-                    onClick={handlePurchase}
-                    disabled={!amount || parseFloat(amount) <= 0 || !price || status === 'processing'}
-                    className="w-full h-18 bg-green-900 hover:bg-green-800 text-white rounded-[24px] text-lg font-bold shadow-2xl shadow-green-900/30 transition-all active:scale-95 disabled:opacity-50"
+                    onClick={handleTransaction}
+                    disabled={!amount || !price || status === 'processing'}
+                    className="w-full h-16 bg-green-900 hover:bg-green-800 text-white rounded-[24px] text-lg font-black shadow-xl"
                 >
-                    {status === 'processing' ? (
-                        <div className="flex items-center gap-3">
-                            <Loader2 className="animate-spin" />
-                            <span>Processing...</span>
-                        </div>
-                    ) : (
-                        "Confirm Purchase"
-                    )}
+                    {status === 'processing' ? <Loader2 className="animate-spin" /> : `Confirm ${mode.toUpperCase()}`}
                 </Button>
-
-                <p className="text-[10px] text-center text-slate-400 font-medium px-6">
-                    By confirming, you agree to the instantaneous exchange of USD for digital assets at the current market rate.
-                </p>
             </div>
         </div>
     )
 }
 
-// 6. Full Screen States
-function SuccessState({ asset, amount, price }) {
+function SuccessState({ mode, asset, amount, price }) {
+    const cryptoAmount = (parseFloat(amount) / price).toFixed(8);
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-8 text-center space-y-8 bg-white animate-in zoom-in-95 duration-500">
-            <div className="w-24 h-24 bg-green-100 text-green-700 rounded-full flex items-center justify-center shadow-inner">
-                <CheckCircle2 size={56} strokeWidth={2.5} />
+        <div className="min-h-screen flex flex-col items-center justify-center p-8 text-center bg-white">
+            <div className="w-24 h-24 bg-green-100 text-green-700 rounded-full flex items-center justify-center mb-6">
+                <CheckCircle2 size={56} />
             </div>
-            <div className="space-y-2">
-                <h2 className="text-4xl font-black text-slate-900 tracking-tight">Success!</h2>
-                <p className="text-slate-500 max-w-[280px] mx-auto text-sm font-medium leading-relaxed">
-                    Your {asset.name} has been purchased and added to your secure wallet.
-                </p>
-            </div>
-            <div className="bg-slate-50 p-8 rounded-[40px] w-full max-w-xs border border-slate-100 shadow-sm">
-                <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-2">Total Received</p>
-                <p className="text-4xl font-black text-green-900">
-                    { (parseFloat(amount) / price).toFixed(8) }
-                </p>
-                <p className="text-xs font-bold text-green-700 mt-1">{asset.symbol}</p>
-            </div>
-            <Link href="/app" className="w-full max-w-xs pt-4">
-                <Button className="w-full h-16 bg-green-900 text-white rounded-[24px] font-bold text-lg shadow-xl shadow-green-900/20">
-                    Back to Wallet
-                </Button>
+            <h2 className="text-4xl font-black text-slate-900 mb-2">Trade Success!</h2>
+            <p className="text-slate-500 text-sm mb-8">
+                {mode === 'buy' 
+                    ? `Successfully purchased ${cryptoAmount} ${asset.symbol}` 
+                    : `Successfully sold ${cryptoAmount} ${asset.symbol} for USD`}
+            </p>
+            <Link href="/app" className="w-full max-w-xs">
+                <Button className="w-full h-16 bg-green-900 text-white rounded-[24px] font-bold">Back to Dashboard</Button>
             </Link>
         </div>
     )
@@ -272,29 +292,13 @@ function SuccessState({ asset, amount, price }) {
 
 function ErrorState({ message, onRetry }) {
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-8 text-center space-y-8 bg-white animate-in fade-in duration-500">
-            <div className="w-24 h-24 bg-red-100 text-red-600 rounded-full flex items-center justify-center">
-                <XCircle size={56} strokeWidth={2.5} />
+        <div className="min-h-screen flex flex-col items-center justify-center p-8 text-center bg-white">
+            <div className="w-24 h-24 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-6">
+                <XCircle size={56} />
             </div>
-            <div className="space-y-2">
-                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Transaction Failed</h2>
-                <p className="text-slate-500 text-sm font-medium px-4 leading-relaxed">
-                    {message || "An unexpected error occurred. Please verify your account balance and try again."}
-                </p>
-            </div>
-            <div className="flex flex-col w-full max-w-xs gap-4">
-                <Button 
-                    onClick={onRetry} 
-                    className="h-16 bg-slate-900 text-white rounded-[24px] font-extrabold text-lg flex items-center justify-center gap-3 shadow-xl"
-                >
-                    <RefreshCcw size={20} /> Try Again
-                </Button>
-                <Link href="/app" className="w-full">
-                    <Button variant="ghost" className="w-full h-12 text-slate-400 font-bold hover:text-slate-600">
-                        Cancel Transaction
-                    </Button>
-                </Link>
-            </div>
+            <h2 className="text-3xl font-black text-slate-900 mb-2">Failed</h2>
+            <p className="text-slate-500 text-sm mb-8">{message}</p>
+            <Button onClick={onRetry} className="w-full max-w-xs h-16 bg-slate-900 text-white rounded-[24px] font-bold">Try Again</Button>
         </div>
     )
 }
