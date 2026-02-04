@@ -80,13 +80,7 @@ export default function AccountDetails() {
 					{/* Account Number Display */}
 <div className="mt-4 flex flex-col items-center gap-2">
     <div 
-        onClick={() => {
-            const accNum = isSavings ? accountDetails?.savings_account_number : accountDetails?.checking_account_number;
-            if (accNum) {
-                navigator.clipboard.writeText(accNum);
-                alert("Account number copied!");
-            }
-        }}
+        
         className="bg-white/10 hover:bg-white/20 transition-all px-4 py-2 rounded-2xl cursor-pointer flex items-center gap-3 border border-white/5 shadow-inner"
     >
         <div className="flex flex-col items-start">
@@ -95,9 +89,16 @@ export default function AccountDetails() {
             </span>
             <span className="text-sm font-mono font-bold tracking-widest text-emerald-400">
                 {isSavings 
-                    ? accountDetails?.savings_acc_number || '--- --- ----' 
-                    : accountDetails?.checking_acc_number || '--- --- ----'
+                    ? accountDetails?.savings_account_number || '--- --- ----' 
+                    : accountDetails?.checking_account_number || '--- --- ----'
                 }
+
+            </span>
+            <span className="text-[9px] font-black uppercase tracking-[0.15em] text-white/40 leading-none">
+                Bank Name
+            </span>
+            <span className="text-sm font-mono font-bold tracking-widest text-emerald-400">
+                Paysense                
             </span>
         </div>
         <div className="h-6 w-[1px] bg-white/10" />
