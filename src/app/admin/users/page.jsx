@@ -71,10 +71,12 @@ export default async function AdminPage() {
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
-                                        <Button variant="outline" size="sm" className="h-8 rounded-lg border-slate-200">
-                                            <UserCog size={14} className="mr-2" />
-                                            Manage
-                                        </Button>
+                                        <Link href={`/admin/users/${user.id}`}>
+    <Button variant="outline" size="sm" className="h-8 rounded-lg border-slate-200">
+        <UserCog size={14} className="mr-2" />
+        Manage
+    </Button>
+</Link>
                                         {user.stripe_connect_id && (
                                             <Button variant="ghost" size="sm" className="h-8 text-indigo-600">
                                                 <ExternalLink size={14} />

@@ -21,25 +21,32 @@ export async function getAdminUsers() {
     }
 }
 
-export default async function get_admin_user_details(id) {
-    const session = await auth()
-    if (session?.user?.role !== "admin") throw New Error("Unauthorized")
+export async function getFullUserManagementData(userId) {
+    const session = await auth();
+    if (session?.user?.role !== "admin") throw new Error("Unauthorized");
 
     try {
-        const { rows } = await query(
-            `SELECT * FROM paysense_users where id = $1`, 
-            [id]
-        );
-        return { success: true, users: rows[0] };
+        const [userRes, accountRes, transRes] = await Promise.all([
+            query(`SELECT * FROM paysense_users WHERE id = $1`, [userId]),
+            query(`SELECT * FROM paysense_accounts WHERE user_id = $1`, [userId]),
+            query(`SELECT * FROM paysense_transactions WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50`, [userId])
+        ]);
+
+        return {
+            success: true,
+            user: userRes.rows[0],
+            account: accountRes.rows[0],
+            transactions: transRes.rows
+        };
     } catch (e) {
         console.error(e);
-        return { success: false, message: "Failed to fetch user" };
+        return { success: false };
     }
 }
 
 export default async function terminate_user(id){
     const session = await auth()
-    if (session?.user?.role !== "admin") throw New Error("Unauthorized")
+    if (session?.user?.role != "admin") throw New Error("Unauthorized")
 
     try {
         const { rows } = await query(
