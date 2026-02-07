@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 
 export async function getAdminUsers() {
     const session = await auth();
-    if (session?.user?.role !== "admin") throw new Error("Unauthorized");
+    if (session?.user?.role !== "admin") return {success: false};
 
     try {
         const { rows } = await query(
@@ -46,7 +46,7 @@ export async function getFullUserManagementData(userId) {
 
 export default async function terminate_user(id){
     const session = await auth()
-    if (session?.user?.role != "admin") throw New Error("Unauthorized")
+    if (session?.user?.role != "admin") return {success: false};
 
     try {
         const { rows } = await query(
@@ -62,7 +62,7 @@ export default async function terminate_user(id){
 
 export async function updateKycStatus(userId, status) {
     const session = await auth();
-    if (session?.user?.role !== "admin") throw new Error("Unauthorized");
+    if (session?.user?.role !== "admin") return {success: false};
 
     try {
         await query("UPDATE paysense_users SET kyc_status = $1 WHERE id = $2", [status, userId]);
