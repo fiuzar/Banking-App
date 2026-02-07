@@ -23,7 +23,7 @@ export async function getAdminUsers() {
 
 export async function getFullUserManagementData(userId) {
     const session = await auth();
-    if (session?.user?.role !== "admin") throw new Error("Unauthorized");
+    if (session?.user?.role !== "admin") return {success: false};
 
     try {
         const [userRes, accountRes, transRes] = await Promise.all([
