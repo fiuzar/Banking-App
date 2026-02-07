@@ -44,7 +44,7 @@ export async function getFullUserManagementData(userId) {
     }
 }
 
-export default async function terminate_user(id){
+export async function terminate_user(id){
     const session = await auth()
     if (session?.user?.role != "admin") return {success: false};
 
