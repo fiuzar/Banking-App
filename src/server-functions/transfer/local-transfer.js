@@ -84,7 +84,7 @@ export async function processLocalUSDTransfer(formData) {
 
         await query(
             `INSERT INTO paysense_notifications (user_id, type, title, message) VALUES ($1, $2, $3, $4)`,
-            [senderId, "success", "Local Transfer", `Successfully transferred ${amount} to ${targetAccNo}`]
+            [senderId, "success", "Local Transfer", `Successfully transferred $${amount} to ${targetAccNo}`]
         )
 
         await client.query('COMMIT');

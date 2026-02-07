@@ -5,6 +5,7 @@ import { SessionProvider } from "next-auth/react";
 import React, { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { DesktopNaBar, MobileNavBar } from "@/components/app/navbers";
+import {Toaster} from "sonner"
 
 
 export default function Layout({ children }) {
@@ -28,6 +29,7 @@ export default function Layout({ children }) {
 							{/* MOBILE BOTTOM NAV */}
 							<MobileNavBar />
 						</div>
+						<Toaster position="top-center" richColors />
 					</div>
 				</AccountDetailsContext.Provider>
 			</UserContext.Provider>

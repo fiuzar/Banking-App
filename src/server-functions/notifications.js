@@ -13,7 +13,13 @@ export async function get_notification_list() {
 
     try {
         const res = await query(
-            `SELECT * FROM paysense_notifications 
+            `SELECT 
+    id, 
+    type, 
+    title, 
+    message, 
+    is_read, 
+    created_at AT TIME ZONE 'UTC' as created_at FROM paysense_notifications 
              WHERE user_id = $1 
              ORDER BY created_at DESC LIMIT 50`,
             [userId]
@@ -67,5 +73,30 @@ export async function clear_notification_history() {
         return { success: true }
     } catch (error) {
         return { success: false }
+    }
+}
+
+// server-functions/notifications.js
+export async function get_unread_notification_count() {
+    const session = await auth()
+    const userId = session?.user?.id
+
+    if (!userId) return { success: false, count: 0 }
+
+    try {
+        const res = await query(
+            `SELECT COUNT(*) as unread_count 
+             FROM paysense_notifications 
+             WHERE user_id = $1 AND is_read = false`,
+            [userId]
+        )
+
+        return { 
+            success: true, 
+            count: parseInt(res.rows[0].unread_count) || 0 
+        }
+    }
+    catch(e) {
+        return { success: false, count: 0 }
     }
 }

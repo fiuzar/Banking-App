@@ -70,7 +70,7 @@ export async function internalTransfer(transfer_amount, from_account) {
 
         await query(
             `INSERT INTO paysense_notifications (user_id, type, title, message) VALUES ($1, $2, $3, $4)`,
-            [userId, "success", "Internal Transfer", `Successfully transferred ${amount} from ${from_account} to ${toAccount}`]
+            [userId, "success", "Internal Transfer", `Successfully transferred $${amount} from ${from_account} to ${toAccount}`]
         )
 
         // 6. COMMIT TRANSACTION

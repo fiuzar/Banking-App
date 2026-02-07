@@ -1,149 +1,235 @@
 'use client'
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useState, useContext, useEffect } from "react"
 import { 
-  ArrowLeft, 
-  Eye, 
-  EyeOff, 
-  Snowflake, 
-  Settings, 
-  Lock, 
-  ShieldCheck,
-  CreditCard as CardIcon,
-  ChevronRight
+  Plus, Shield, Eye, EyeOff, Lock, Unlock,
+  CreditCard, Zap, ArrowUpRight, ArrowDownLeft, Settings, Loader2
 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { AccountDetailsContext } from "@/server-functions/contexts"
 import Link from "next/link"
-import { Switch } from "@/components/ui/switch"
+import { issueVirtualCardAction, toggle_card_freeze } from "@/server-functions/cards"
+import { toast } from "sonner"
 
-export default function VirtualCardPage() {
+export default function CardIssuingPage() {
+  const { accountDetails, setAccountDetails } = useContext(AccountDetailsContext)
   const [showDetails, setShowDetails] = useState(false)
-  const [isFrozen, setIsFrozen] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  // Determine if user has a card based on the JSONB column in your context
+  const hasCard = !!accountDetails?.card_details;
+  const cardData = accountDetails?.card_details;
+  const isFrozen = cardData?.status === 'frozen';
+
+  const holderName = `${accountDetails?.first_name || ''} ${accountDetails?.last_name || ''}`.trim() || "PaySense User";
+
+  const handleIssueCard = async () => {
+    if (loading) return
+    setLoading(true)
+    
+    try {
+        const { success, error, account_details } = await issueVirtualCardAction('checking')
+        if (success) {
+            setAccountDetails(account_details)
+            toast(<div className="text-green-800">
+                <h2 className="text-md font-bold">Card issued successfully!</h2>
+                <p className="text-xs">Your virtual card is ready for use.</p>
+            </div>)
+        } else {
+
+            toast(<div className="text-red-800">
+                <h2 className="text-md font-bold">Issuance Failed</h2>
+                <p className="text-xs">`${error || "Insufficient funds or database error."}`</p>
+            </div>)
+        }
+    } catch (err) {
+
+            toast("emma")
+        // toast.error("Critical System Error", {
+        //     description: "Please contact support if this persists."
+        // })
+    } finally {
+        setLoading(false)
+    }
+  }
+
+  const handleFreezeToggle = async () => {
+    if (loading) return
+    setLoading(true)
+    
+    try {
+      const { success, account_details } = await toggle_card_freeze()
+      if (success) {
+        setAccountDetails(account_details)
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-12">
-      {/* Header */}
-      <div className="bg-primary p-6 text-white flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/app"><ArrowLeft size={24} /></Link>
-          <h1 className="text-xl font-bold">My Card</h1>
-        </div>
-        <Settings size={20} className="opacity-60" />
-      </div>
+    <div className="min-h-screen bg-slate-50 pb-32">
+      <div className="p-6 max-w-md mx-auto">
+        <h1 className="text-2xl font-black text-slate-900 mb-6">My Virtual Card</h1>
 
-      <div className="max-w-md mx-auto p-6 space-y-8">
-        
-        {/* The Virtual Card Visual */}
-        <div className={`relative aspect-[1.58/1] w-full rounded-[24px] p-8 text-white overflow-hidden transition-all duration-500 shadow-2xl ${isFrozen ? 'grayscale contrast-75' : 'bg-gradient-to-br from-brand-dark via-slate-900 to-primary'}`}>
-            {/* Glossy Overlay */}
-            <div className="absolute top-0 left-0 w-full h-full bg-white/5 backdrop-blur-[1px]" />
-            
-            <div className="relative z-10 h-full flex flex-col justify-between">
-                <div className="flex justify-between items-start">
-                    <span className="text-xl font-black italic tracking-tighter italic">Paysense</span>
-                    <CardIcon className="opacity-80" size={24} />
+        {!hasCard ? (
+          /* ISSUE CARD STATE */
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+            <div className="relative overflow-hidden bg-gradient-to-br from-slate-800 to-black p-8 rounded-[32px] text-white shadow-2xl">
+              <div className="relative z-10">
+                <div className="w-12 h-8 bg-amber-400/20 rounded-md mb-12 border border-amber-400/30" />
+                <p className="text-xl font-medium tracking-widest mb-2 opacity-20">•••• •••• •••• ••••</p>
+                <div className="flex justify-between items-end">
+                    <div>
+                        <p className="text-[10px] uppercase tracking-widest opacity-40">Card Holder</p>
+                        <p className="font-bold uppercase tracking-tight">{holderName}</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-[10px] uppercase opacity-40 italic font-black">Visa</p>
+                        <p className="text-[8px] uppercase opacity-40 font-bold">Virtual</p>
+                    </div>
                 </div>
+              </div>
+              <div className="absolute -right-10 -top-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl" />
+            </div>
 
-                <div className="space-y-1">
-                    <p className="text-[10px] uppercase tracking-[0.3em] opacity-60 font-bold">Card Number</p>
-                    <p className="text-xl font-mono tracking-widest">
-                        {showDetails ? "4412 8892 1002 4456" : "•••• •••• •••• 4456"}
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+              <h3 className="font-bold text-lg text-slate-900">Instant Virtual Card</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Get an instant virtual card for secure online shopping. Compatible with Apple Pay and Google Pay.
+              </p>
+              
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center gap-3 text-sm text-slate-600">
+                  <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><Plus size={14}/></div>
+                  <span>One-time issuing fee: <strong>$5.00</strong></span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-slate-600">
+                    <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><Shield size={14}/></div>
+                    <span>Bank-grade encryption & 3D Secure</span>
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleIssueCard}
+                disabled={loading}
+                className="w-full h-14 bg-primary rounded-2xl font-bold text-lg mt-4 shadow-lg shadow-primary/20 active:scale-95 transition-transform"
+              >
+                {loading ? <Loader2 className="animate-spin mr-2" /> : null}
+                {loading ? "Issuing..." : "Issue Card for $5.00"}
+              </Button>
+              <p className="text-[10px] text-center text-slate-400 uppercase font-bold tracking-widest">Fee deducted from Checking Balance</p>
+            </div>
+          </div>
+        ) : (
+          /* ACTIVE CARD STATE */
+          <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
+            {/* The Visual Card */}
+            <div className={`relative overflow-hidden p-8 rounded-[32px] text-white transition-all duration-500 shadow-2xl ${
+                isFrozen 
+                ? 'bg-slate-300 grayscale scale-[0.98]' 
+                : 'bg-gradient-to-tr from-primary to-blue-600 shadow-primary/30'
+            }`}>
+                {/* Frozen Overlay */}
+                {isFrozen && (
+                    <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px] z-20 flex items-center justify-center">
+                        <div className="bg-white/90 text-slate-900 px-4 py-2 rounded-full flex items-center gap-2 shadow-xl animate-bounce">
+                            <Lock size={16} className="text-red-500" />
+                            <span className="text-xs font-black uppercase tracking-widest">Card Frozen</span>
+                        </div>
+                    </div>
+                )}
+
+                <div className="flex justify-between items-start mb-12 relative z-10">
+                    <Zap fill={isFrozen ? "#94a3b8" : "white"} size={24} className={isFrozen ? "opacity-50" : ""} />
+                    <button 
+                      onClick={() => setShowDetails(!showDetails)}
+                      className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
+                    >
+                        {showDetails ? <EyeOff size={20}/> : <Eye size={20}/>}
+                    </button>
+                </div>
+                
+                <div className="space-y-6 relative z-10">
+                    <p className="text-2xl font-mono tracking-[0.2em]">
+                        {showDetails ? cardData.card_number : `•••• •••• •••• ${cardData.card_number?.slice(-4)}`}
                     </p>
+                    <div className="flex gap-10">
+                        <div>
+                            <p className="text-[9px] uppercase opacity-60 font-bold mb-1">Expiry</p>
+                            <p className="font-bold text-sm tracking-widest">{cardData.expiry}</p>
+                        </div>
+                        <div>
+                            <p className="text-[9px] uppercase opacity-60 font-bold mb-1">CVV</p>
+                            <p className="font-bold text-sm tracking-widest">{showDetails ? cardData.cvv : "•••"}</p>
+                        </div>
+                    </div>
                 </div>
+                
+                {/* Card Branding Decor */}
+                <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+            </div>
 
-                <div className="flex gap-12">
-                    <div>
-                        <p className="text-[8px] uppercase opacity-50 font-bold">Expiry</p>
-                        <p className="text-sm font-bold">{showDetails ? "12/28" : "••/••"}</p>
-                    </div>
-                    <div>
-                        <p className="text-[8px] uppercase opacity-50 font-bold">CVV</p>
-                        <p className="text-sm font-bold">{showDetails ? "882" : "•••"}</p>
-                    </div>
-                    <div className="ml-auto flex items-center gap-2">
-                        <img src="https://flagcdn.com/w20/us.png" className="rounded-sm opacity-80" alt="USD" />
-                        <span className="text-[10px] font-bold">USD</span>
+            {/* Quick Actions */}
+            <div className="flex gap-4">
+                <Button 
+                    variant="outline" 
+                    disabled={loading}
+                    onClick={handleFreezeToggle}
+                    className={`flex-1 h-14 rounded-2xl gap-2 border-2 transition-all font-bold ${
+                        isFrozen ? 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100' : 'border-slate-100 text-slate-600 hover:bg-slate-100'
+                    }`}
+                >
+                    {loading ? <Loader2 className="animate-spin" size={18}/> : (isFrozen ? <Unlock size={18} /> : <Lock size={18} />)}
+                    {isFrozen ? "Unfreeze" : "Freeze"}
+                </Button>
+                <Button variant="outline" className="flex-1 h-14 rounded-2xl gap-2 border-2 border-slate-100 text-slate-600 font-bold hover:bg-slate-100">
+                    <Settings size={18} /> Limits
+                </Button>
+            </div>
+
+            {/* Card Transactions Section */}
+            <div className="pt-2">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-black text-slate-900">Card Transactions</h3>
+                    <Link href="/app/transactions" className="text-[10px] font-bold text-primary uppercase tracking-widest">View All</Link>
+                </div>
+                <div className="space-y-3">
+                    <CardTransactionItem name="Netflix.com" date="Today, 10:15 AM" amount={-15.99} status="Completed" />
+                    <CardTransactionItem name="Amazon.com" date="Yesterday" amount={-84.50} status="Pending" />
+                    <CardTransactionItem name="Apple Services" date="Feb 2, 2026" amount={-0.99} status="Completed" />
+                    {/* Empty State if no transactions */}
+                    <div className="p-8 text-center bg-white rounded-[24px] border border-dashed border-slate-200">
+                        <p className="text-xs text-slate-400 font-medium">New transactions will appear here</p>
                     </div>
                 </div>
             </div>
-
-            {isFrozen && (
-                <div className="absolute inset-0 z-20 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center">
-                    <div className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full border border-white/30">
-                        <Snowflake size={16} />
-                        <span className="text-xs font-bold uppercase tracking-widest">Frozen</span>
-                    </div>
-                </div>
-            )}
-        </div>
-
-        {/* Quick Actions Bar */}
-        <div className="flex justify-around bg-white p-4 rounded-3xl shadow-sm border border-border">
-            <button 
-                onClick={() => setShowDetails(!showDetails)}
-                className="flex flex-col items-center gap-2 group"
-            >
-                <div className="p-3 bg-secondary rounded-full text-primary group-active:scale-90 transition-all">
-                    {showDetails ? <EyeOff size={20} /> : <Eye size={20} />}
-                </div>
-                <span className="text-[10px] font-bold text-n-500 uppercase">{showDetails ? 'Hide' : 'Reveal'}</span>
-            </button>
-
-            <button 
-                onClick={() => setIsFrozen(!isFrozen)}
-                className="flex flex-col items-center gap-2 group"
-            >
-                <div className={`p-3 rounded-full transition-all group-active:scale-90 ${isFrozen ? 'bg-primary text-white' : 'bg-secondary text-primary'}`}>
-                    <Snowflake size={20} />
-                </div>
-                <span className="text-[10px] font-bold text-n-500 uppercase">{isFrozen ? 'Unfreeze' : 'Freeze'}</span>
-            </button>
-
-            <button className="flex flex-col items-center gap-2 group">
-                <div className="p-3 bg-secondary rounded-full text-primary group-active:scale-90 transition-all">
-                    <Lock size={20} />
-                </div>
-                <span className="text-[10px] font-bold text-n-500 uppercase">PIN</span>
-            </button>
-        </div>
-
-        {/* Card Settings List */}
-        <div className="space-y-3">
-            <p className="text-[10px] font-bold text-n-500 uppercase tracking-widest ml-1">Security & Limits</p>
-            
-            <div className="bg-white rounded-brand-card border border-border divide-y divide-border">
-                <div className="p-5 flex items-center justify-between">
-                    <div className="flex gap-4 items-center">
-                        <div className="w-10 h-10 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center">
-                            <ShieldCheck size={20} />
-                        </div>
-                        <div>
-                            <p className="text-sm font-bold text-brand-dark">Contactless Payments</p>
-                            <p className="text-[10px] text-n-500">Online & POS spending</p>
-                        </div>
-                    </div>
-                    <Switch defaultChecked />
-                </div>
-
-                <div className="p-5 flex items-center justify-between cursor-pointer hover:bg-slate-50">
-                    <div className="flex gap-4 items-center">
-                        <div className="w-10 h-10 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center">
-                            <CardIcon size={20} />
-                        </div>
-                        <div>
-                            <p className="text-sm font-bold text-brand-dark">Spending Limit</p>
-                            <p className="text-[10px] text-n-500">Current: $2,500.00 / mo</p>
-                        </div>
-                    </div>
-                    <ChevronRight size={18} className="text-n-300" />
-                </div>
-            </div>
-        </div>
-
-        <Button variant="outline" className="w-full h-14 border-red-200 text-red-500 hover:bg-red-50 font-bold rounded-2xl">
-            Terminate Virtual Card
-        </Button>
+          </div>
+        )}
       </div>
     </div>
   )
+}
+
+function CardTransactionItem({ name, date, amount, status }) {
+    return (
+        <div className="flex justify-between items-center p-4 bg-white rounded-[24px] border border-slate-100 shadow-sm transition-transform active:scale-[0.98]">
+            <div className="flex items-center gap-3">
+                <div className="w-11 h-11 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 border border-slate-100">
+                    <CreditCard size={20} />
+                </div>
+                <div>
+                    <p className="text-sm font-bold text-slate-900 tracking-tight">{name}</p>
+                    <p className="text-[10px] text-slate-400 font-semibold">{date}</p>
+                </div>
+            </div>
+            <div className="text-right">
+                <p className="text-sm font-black text-slate-900">${Math.abs(amount).toFixed(2)}</p>
+                <p className={`text-[9px] font-bold uppercase tracking-tighter ${status === 'Pending' ? 'text-amber-500' : 'text-slate-300'}`}>{status}</p>
+            </div>
+        </div>
+    )
 }
