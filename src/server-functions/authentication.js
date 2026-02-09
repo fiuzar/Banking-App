@@ -348,3 +348,35 @@ export async function submitKYC(formData) {
     revalidatePath('/app/settings')
     return { success: true, status: 'pending' }
 }
+
+export async function finalizePinSetup(formData) {
+    const session = await auth();
+    const userId = session?.user?.id;
+    const email = session?.user?.email;
+
+    const otp = formData.get('otp');
+    const pin = formData.get('pin');
+
+    try {
+        // 1. Verify OTP
+        const res = await query(
+            "SELECT * FROM otp_verifications WHERE email = $1 AND code = $2 AND purpose = 'pin_setup'",
+            [email, otp]
+        );
+
+        if (res.rows.length === 0 || new Date() > new Date(res.rows[0].expires_at)) {
+            return { success: false, error: "Invalid or expired code." };
+        }
+
+        // 2. Update PIN
+        await query("UPDATE paysense_accounts SET pin = $1 WHERE user_id = $2", [pin, userId]);
+        
+        // 3. Cleanup OTP
+        await query("DELETE FROM otp_verifications WHERE email = $1", [email]);
+
+        revalidatePath('/app/settings');
+        return { success: true };
+    } catch (e) {
+        return { success: false, error: "System error. Try again." };
+    }
+}

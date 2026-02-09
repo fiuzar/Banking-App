@@ -9,7 +9,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 export default async function UserManagementDetails({ params }) {
-    const { id } = params;
+    const { id } = await params;
     const { user, account, transactions, success } = await getFullUserManagementData(id);
 
     if (!success || !user) redirect("/admin");

@@ -28,7 +28,7 @@ export async function initiateWireTransfer(formData) {
 
         // 1. Get User Data & Check PIN
         const userRes = await query(
-            `SELECT u.stripe_connect_id, u.kyc_status, u.password, a.checking_balance, a.savings_balance 
+            `SELECT u.stripe_connect_id, u.kyc_status, u.password, a.checking_balance, a.savings_balance, pin 
              FROM paysense_users u 
              JOIN paysense_accounts a ON u.id = a.user_id 
              WHERE u.id = $1 FOR UPDATE`,
@@ -38,6 +38,8 @@ export async function initiateWireTransfer(formData) {
         const user = userRes.rows[0]
         if (!user) throw new Error("Account not found.")
         if (user.kyc_status !== 'verified') throw new Error("KYC Verification required for Wires.")
+
+        if(!user.pin || user.pin !== pin) throw new Error("Invalid pin, if you don't have pin, set it up in settings")
 
         // 2. Validate Balance based on source
         const currentBalance = sourceAccount === 'savings' ? user.savings_balance : user.checking_balance

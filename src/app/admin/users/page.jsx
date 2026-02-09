@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, ShieldCheck, UserCog } from "lucide-react";
+import Link from "next/link"
 
 export default async function AdminPage() {
     const { users = [] } = await getAdminUsers();

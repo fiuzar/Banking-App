@@ -46,7 +46,7 @@ export async function GET() {
         return NextResponse.json({ 
             success: true, 
             user_details: user_rows[0], 
-            account_details: account_rows[0] 
+            account_details: account_rows[0]
         });
 
     } catch (e) {

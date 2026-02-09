@@ -29,7 +29,7 @@ export async function internalTransfer(transfer_amount, from_account) {
 
         // 2. CHECK SUFFICIENT BALANCE
         const balanceRes = await query(
-            `SELECT ${fromColumn} FROM paysense_accounts WHERE id = $1 FOR UPDATE`,
+            `SELECT ${fromColumn} FROM paysense_accounts WHERE user_id = $1 FOR UPDATE`,
             [userId]
         )
 
@@ -47,13 +47,13 @@ export async function internalTransfer(transfer_amount, from_account) {
 
         // 3. DEBIT FROM SOURCE
         await query(
-            `UPDATE paysense_accounts SET ${fromColumn} = ${fromColumn} - $1 WHERE id = $2`,
+            `UPDATE paysense_accounts SET ${fromColumn} = ${fromColumn} - $1 WHERE user_id = $2`,
             [amount, userId]
         )
 
         // 4. CREDIT TO DESTINATION
         const { rows: account_details } = await query(
-            `UPDATE paysense_accounts SET ${toColumn} = ${toColumn} + $1 WHERE id = $2 returning *`,
+            `UPDATE paysense_accounts SET ${toColumn} = ${toColumn} + $1 WHERE user_id = $2 returning *`,
             [amount, userId]
         )
 
