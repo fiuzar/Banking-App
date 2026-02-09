@@ -185,66 +185,71 @@ export async function handle_Signup(first_name, last_name, email, password, conf
 export async function otpVerification(pin, email) {
     try {
         const { rows } = await query(
-            "SELECT * FROM paysense_verify_email WHERE email = $1 ORDER BY date DESC LIMIT 1",
-            [email]
+            "SELECT * FROM otp_verifications WHERE email = $1 AND code = $2 AND purpose = 'email_verification' LIMIT 1",
+            [email, pin]
         );
         const record = rows[0];
 
-        if (!record || record.pin !== pin) return { success: false, message: "Invalid Code" };
+        if (!record) return { success: false, message: "Invalid Code" };
 
-        // --- expiry check (5 min) ---
-        const now = new Date();
-        const sent = new Date(record.date);
-        if ((now - sent) / 1000 > 900) {
-            await query("DELETE FROM paysense_verify_email WHERE email = $1", [email]);
-            return { success: false, message: "Code expired. Please request a new one." };
+        if (new Date() > new Date(record.expires_at)) {
+            await query("DELETE FROM otp_verifications WHERE email = $1", [email]);
+            return { success: false, message: "Code expired." };
         }
 
-        // 1. Verify user
         await query("UPDATE paysense_users SET verified = true WHERE email = $1", [email]);
-
-        // 2. Fetch the updated user to log them in automatically
-        const userRes = await query("SELECT id, first_name, last_name, email FROM paysense_users WHERE email = $1", [email]);
-        const user = userRes.rows[0];
-
-        // 3. Clear used OTP
-        await query("DELETE FROM paysense_verify_email WHERE email = $1", [email]);
-
-        // 4. Log them in right now so they don't have to type their password again
-        await signIn("credentials", {
-            id: user.id,
-            name: `${user.first_name} ${user.last_name}`,
-            email: user.email,
-            redirect: false
-        });
-
+        // ... (rest of your login logic)
+        
+        await query("DELETE FROM otp_verifications WHERE email = $1", [email]);
         return { success: true };
     } catch (e) {
-        console.error("OTP verification error:", e);
         return { success: false, message: "Verification failed" };
     }
 }
 
-export async function create_otp(email) {
+// --- UNIVERSAL OTP GENERATOR ---
+export async function create_otp(email, purpose = "email_verification") {
     const pin = Math.floor(100000 + Math.random() * 900000).toString();
-    await query("DELETE FROM paysense_verify_email WHERE email = $1", [email]);
-    await query("INSERT INTO paysense_verify_email (email, pin, date) VALUES ($1, $2, $3)", [email, pin, new Date()]);
-
-    // Nodemailer setup
-    const transport = nodemailer.createTransport({
-        host: "smtp.gmail.com", port: 587,
-        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASSWORD }
-    });
+    const expires_at = new Date(Date.now() + 900000); // 15 minutes expiry
 
     try {
+        // Clear any existing codes for this email and purpose
+        await query(
+            "DELETE FROM otp_verifications WHERE email = $1 AND purpose = $2", 
+            [email, purpose]
+        );
+
+        // Insert new code
+        await query(
+            "INSERT INTO otp_verifications (email, code, purpose, expires_at) VALUES ($1, $2, $3, $4)", 
+            [email, pin, purpose, expires_at]
+        );
+
+        // Nodemailer setup
+        const transport = nodemailer.createTransport({
+            host: "smtp.gmail.com", 
+            port: 587,
+            auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASSWORD }
+        });
+
         await transport.sendMail({
             from: `"Paysense" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: "Your Verification Code",
-            html: `<h2>Code: ${pin}</h2>`
+            html: `
+                <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                    <h2 style="color: #166534;">Verification Code</h2>
+                    <p>Use the code below to complete your <b>${purpose.replace('_', ' ')}</b>.</p>
+                    <h1 style="letter-spacing: 5px; font-size: 32px; color: #333;">${pin}</h1>
+                    <p style="font-size: 12px; color: #888;">This code expires in 15 minutes.</p>
+                </div>
+            `
         });
+
+        return { success: true };
     } catch (e) {
-        console.error("Email send error:", e);
+        console.error("OTP Error:", e);
+        return { success: false, message: "Failed to send code." };
     }
 }
 

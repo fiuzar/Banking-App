@@ -12,10 +12,9 @@ export async function issueVirtualCardAction(sourceAccount = 'checking') {
     if (!userId) return { success: false, error: "Unauthorized" };
 
     try {
-        // Start a Transaction to ensure balance deduction and card creation happen together
         await query('BEGIN');
 
-        // 1. Check if user has enough balance and get current account status
+        // 1. Get account details
         const accountRes = await query(
             `SELECT checking_balance, savings_balance, card_details 
              FROM paysense_accounts WHERE user_id = $1 FOR UPDATE`, 
@@ -36,12 +35,11 @@ export async function issueVirtualCardAction(sourceAccount = 'checking') {
             return { success: false, error: `Insufficient funds in ${sourceAccount} account to cover the $5.00 fee.` };
         }
 
-        // 2. Generate Card Details (In a real app, this comes from Stripe/Marqeta)
-        const cardNumber = "4242" + Math.random().toString().slice(2, 14); // Mock card number
+        // 2. Generate Card Details
+        const cardNumber = "4242" + Math.random().toString().slice(2, 14); 
         const cvv = Math.floor(100 + Math.random() * 900).toString();
-        
         const now = new Date();
-        const expiryDate = new Date(now.setFullYear(now.getFullYear() + 3)); // 3 years expiry
+        const expiryDate = new Date(now.setFullYear(now.getFullYear() + 3)); 
         const expiry = `${(expiryDate.getMonth() + 1).toString().padStart(2, '0')}/${expiryDate.getFullYear().toString().slice(-2)}`;
 
         const newCard = {
@@ -53,7 +51,7 @@ export async function issueVirtualCardAction(sourceAccount = 'checking') {
             type: 'Visa Virtual'
         };
 
-        // 3. Deduct Fee and Save Card
+        // 3. Deduct Fee and Update Account
         const {rows: create_card} = await query(
             `UPDATE paysense_accounts 
              SET ${sourceAccount}_balance = ${sourceAccount}_balance - $1,
@@ -62,16 +60,31 @@ export async function issueVirtualCardAction(sourceAccount = 'checking') {
             [CARD_FEE, JSON.stringify(newCard), userId]
         );
 
-        // 4. Log the transaction for history
+        // 4. Log the transaction (Using 'service' to satisfy your SQL constraint)
         await query(
             `INSERT INTO paysense_transactions (user_id, amount, type, description, account_type, status, category)
-             VALUES ($1, $2, 'debit', 'Virtual Card Issuing Fee', $3, 'completed', 'Service')`,
+             VALUES ($1, $2, 'service', 'Virtual Card Issuing Fee', $3, 'completed', 'service')`,
             [userId, CARD_FEE, sourceAccount]
         );
+
+        // --- ADDED NOTIFICATION LOGIC ---
+        await query(
+            `INSERT INTO paysense_notifications (user_id, type, title, message) 
+             VALUES ($1, $2, $3, $4)`,
+            [
+                userId, 
+                "success", 
+                "Virtual Card Issued", 
+                `Your new Visa Virtual card has been activated. A fee of $${CARD_FEE.toFixed(2)} was deducted from your ${sourceAccount} account.`
+            ]
+        );
+        // -------------------------------
 
         await query('COMMIT');
         
         revalidatePath('/app/cards');
+        revalidatePath('/app/notifications'); // Ensure notifications update in UI
+        
         return { success: true, account_details: create_card[0] };
 
     } catch (error) {

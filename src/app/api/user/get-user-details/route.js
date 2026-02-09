@@ -42,6 +42,8 @@ export async function GET() {
             account_rows = new_account;
         }
 
+        console.log(user_rows[0])
+
         // Return fresh data
         return NextResponse.json({ 
             success: true, 
