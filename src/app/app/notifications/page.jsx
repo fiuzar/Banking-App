@@ -14,6 +14,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import { get_notification_list, mark_notification_read, clear_notification_history } from "@/server-functions/notifications"
+import {formatRelativeTime} from "@/lib/time"
+
 
 export default function NotificationsPage() {
 	const [notifications, setNotifications] = useState([])
@@ -126,19 +128,21 @@ export default function NotificationsPage() {
 				{notifications.length > 0 ? (
 					notifications.map((n) => (
 						<div
-							key={n.id}
-							className={`p-4 rounded-3xl transition-all flex gap-4 ${n.is_read ? 'bg-white opacity-60' : 'bg-secondary border border-primary/10 shadow-sm'}`}
-						>
-							{/* Logic for icons/colors based on n.type remains same as your code */}
-							<div className="flex-1 space-y-1">
-								<div className="flex justify-between items-start">
-									<p className="text-sm font-bold text-brand-dark leading-tight">{n.title}</p>
-									<span className="text-[10px] font-medium text-n-400">{n.time || 'now'}</span>
-								</div>
-								<p className="text-xs text-n-500 leading-relaxed">{n.message || n.desc}</p>
-							</div>
-							{!n.is_read && <div className="w-2 h-2 bg-primary rounded-full mt-2" />}
-						</div>
+        key={n.id}
+        className={`p-4 rounded-3xl transition-all flex gap-4 ${n.is_read ? 'bg-white opacity-60' : 'bg-secondary border border-primary/10 shadow-sm'}`}
+    >
+        <div className="flex-1 space-y-1">
+            <div className="flex justify-between items-start">
+                <p className="text-sm font-bold text-brand-dark leading-tight">{n.title}</p>
+                {/* FIX: Use n.created_at instead of n.time */}
+                <span className="text-[10px] font-medium text-n-400">
+                    {n.created_at ? formatRelativeTime(n.created_at) : 'now'}
+                </span>
+            </div>
+            <p className="text-xs text-n-500 leading-relaxed">{n.message}</p>
+        </div>
+        {!n.is_read && <div className="w-2 h-2 bg-primary rounded-full mt-2" />}
+    </div>
 					))
 				) : (
 					/* Empty State UI */

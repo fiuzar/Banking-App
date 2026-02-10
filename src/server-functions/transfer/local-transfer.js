@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { query, pool } from "@/dbh"
 import { auth } from "@/auth"
+import bcrypt from "bcryptjs" // Added bcrypt for hashed PIN verification
 
 /**
  * Verifies recipient and identifies account type
@@ -41,10 +42,12 @@ export async function processLocalUSDTransfer(formData) {
     
     if (!senderId) return { success: false, error: "Authentication required" };
 
-    // REMOVED "as string" - this is standard JS now
     const amount = parseFloat(formData.get('amount'));
     const targetAccNo = formData.get('accountNumber');
+    const pinInput = formData.get('pin'); // Get the raw PIN from formData
     
+    if (!pinInput) return { success: false, error: "Transaction PIN is required" };
+
     const fee = Math.max(2.00, amount * 0.01);
     const totalDeduction = amount + fee;
 
@@ -52,23 +55,44 @@ export async function processLocalUSDTransfer(formData) {
     try {
         await client.query('BEGIN');
 
-        // 1. Check Sender Balance
+        // 1. Get Sender Details (Balance and Hashed PIN)
         const senderCheck = await client.query(
-            `SELECT checking_balance FROM paysense_accounts WHERE user_id = $1 FOR UPDATE`,
+            `SELECT checking_balance, pin, checking_account_number, savings_account_number 
+             FROM paysense_accounts WHERE user_id = $1 FOR UPDATE`,
             [senderId]
         );
 
-        if (parseFloat(senderCheck.rows[0].checking_balance) < totalDeduction) {
+        const senderAccount = senderCheck.rows[0];
+        if (!senderAccount) throw new Error("Sender account not found.");
+
+        // --- PIN VERIFICATION ---
+        if (!senderAccount.pin) {
+            throw new Error("Transaction PIN not set. Please set it up in Settings.");
+        }
+
+        const isPinValid = await bcrypt.compare(pinInput, senderAccount.pin);
+        if (!isPinValid) {
+            throw new Error("Invalid Transaction PIN.");
+        }
+        // -----------------------
+
+        // 2. Prevent Self-Transfer
+        if (targetAccNo === senderAccount.checking_account_number || targetAccNo === senderAccount.savings_account_number) {
+            throw new Error("You cannot transfer money to your own account this way.");
+        }
+
+        // 3. Check Balance
+        if (parseFloat(senderAccount.checking_balance) < totalDeduction) {
             throw new Error("Insufficient funds in your Checking account.");
         }
 
-        // 2. Subtract from Sender
-        const {rows: account_details} = await client.query(
-            `UPDATE paysense_accounts SET checking_balance = checking_balance - $1 WHERE user_id = $2 returning *`,
+        // 4. Subtract from Sender
+        const { rows: account_details } = await client.query(
+            `UPDATE paysense_accounts SET checking_balance = checking_balance - $1 WHERE user_id = $2 RETURNING *`,
             [totalDeduction, senderId]
         );
 
-        // 3. Credit Recipient (Checking if number hits Savings or Checking column)
+        // 5. Credit Recipient
         const recipientUpdate = await client.query(
             `UPDATE paysense_accounts 
              SET 
@@ -82,10 +106,11 @@ export async function processLocalUSDTransfer(formData) {
             throw new Error("Recipient account not found.");
         }
 
-        await query(
+        // 6. Record in Notifications
+        await client.query(
             `INSERT INTO paysense_notifications (user_id, type, title, message) VALUES ($1, $2, $3, $4)`,
             [senderId, "success", "Local Transfer", `Successfully transferred $${amount} to ${targetAccNo}`]
-        )
+        );
 
         await client.query('COMMIT');
         revalidatePath('/app');
@@ -93,7 +118,7 @@ export async function processLocalUSDTransfer(formData) {
         
     } catch (e) {
         await client.query('ROLLBACK');
-        console.log(e)
+        console.error("Transfer Error:", e.message);
         return { success: false, error: e.message };
     } finally {
         client.release();

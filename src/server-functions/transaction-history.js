@@ -42,3 +42,25 @@ export async function get_transaction_history_list(account_type, offset = 0) {
         return { success: false, history: [] };
     }
 }
+
+// Add this to your server actions file
+export async function getTransactionById(tx_id) {
+    const session = await auth();
+    if (!session) return { success: false, message: "Unauthorized" };
+
+    try {
+        const { rows } = await query(
+            `SELECT * FROM paysense_transactions 
+             WHERE id = $1 AND user_id = $2`, 
+            [tx_id, session.user.id]
+        );
+
+        if (rows.length === 0) return { success: false, message: "Transaction not found" };
+        console.log(rows)
+
+        return { success: true, transaction: rows[0] };
+    } catch (e) {
+        console.error("Fetch transaction error:", e);
+        return { success: false, message: "Database error" };
+    }
+}

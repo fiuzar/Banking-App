@@ -4,9 +4,8 @@ import { signIn, auth } from "@/auth"
 import { query } from "@/dbh"
 import nodemailer from "nodemailer"
 import bcrypt from "bcryptjs"
-import { revalidatePath } from "next/cache";
-import crypto from "crypto"; // Native Node.js module
-import {unstable_noStore as noStore} from "next/cache"
+import { revalidatePath, unstable_noStore as noStore } from "next/cache";
+import crypto from "crypto";
 
 // --- REQUEST PASSWORD RESET ---
 export async function requestPasswordReset(email_input) {
@@ -14,25 +13,20 @@ export async function requestPasswordReset(email_input) {
     if (!email) return { success: false, message: "Email is required" };
 
     try {
-        // 1. Check if user exists
         const { rows } = await query("SELECT id FROM paysense_users WHERE email = $1", [email]);
         if (rows.length === 0) {
-            // We return success even if user doesn't exist for security (prevent email harvesting)
             return { success: true, message: "If an account exists, a reset link has been sent." };
         }
 
-        // 2. Generate a secure random token
         const token = crypto.randomBytes(32).toString("hex");
-        const expiry = new Date(Date.now() + 3600000); // 1 hour from now
+        const expiry = new Date(Date.now() + 3600000); 
 
-        // 3. Store token in DB (Delete old tokens for this email first)
         await query("DELETE FROM paysense_password_resets WHERE email = $1", [email]);
         await query(
             "INSERT INTO paysense_password_resets (email, token, expires_at) VALUES ($1, $2, $3)",
             [email, token, expiry]
         );
 
-        // 4. Send Email
         const resetLink = `${process.env.NEXT_PUBLIC_URL}/reset-password?token=${token}`;
         const transport = nodemailer.createTransport({
             host: "smtp.gmail.com", port: 587,
@@ -48,14 +42,12 @@ export async function requestPasswordReset(email_input) {
                     <h2>Password Reset Request</h2>
                     <p>Click the button below to reset your password. This link expires in 1 hour.</p>
                     <a href="${resetLink}" style="background: #166534; color: white; padding: 12px 20px; text-decoration: none; border-radius: 8px; display: inline-block;">Reset Password</a>
-                    <p style="margin-top: 20px; font-size: 12px; color: #666;">If you didn't request this, you can safely ignore this email.</p>
                 </div>
             `
         });
 
         return { success: true, message: "Reset link sent successfully." };
     } catch (e) {
-        console.error("Reset request error:", e);
         return { success: false, message: "Failed to process request." };
     }
 }
@@ -65,32 +57,20 @@ export async function updatePasswordWithToken(token, newPassword) {
     if (!token || !newPassword) return { success: false, message: "Invalid request" };
 
     try {
-        // 1. Verify token and check expiry
         const { rows } = await query(
             "SELECT email FROM paysense_password_resets WHERE token = $1 AND expires_at > NOW()",
             [token]
         );
         const record = rows[0];
 
-        if (!record) {
-            return { success: false, message: "Invalid or expired token" };
-        }
+        if (!record) return { success: false, message: "Invalid or expired token" };
 
-        // 2. Hash new password
         const hashedPassword = await bcrypt.hash(newPassword, 12);
-
-        // 3. Update User Password
-        await query(
-            "UPDATE paysense_users SET password = $1 WHERE email = $2",
-            [hashedPassword, record.email]
-        );
-
-        // 4. Delete the used token
+        await query("UPDATE paysense_users SET password = $1 WHERE email = $2", [hashedPassword, record.email]);
         await query("DELETE FROM paysense_password_resets WHERE email = $1", [record.email]);
 
         return { success: true, message: "Password updated successfully" };
     } catch (e) {
-        console.error("Password update error:", e);
         return { success: false, message: "Failed to update password" };
     }
 }
@@ -100,54 +80,51 @@ export async function googleSignIn() {
     await signIn("google", { redirectTo: "/app" });
 }
 
-// --- CREDENTIALS LOGIN ---
+// --- CREDENTIALS LOGIN (RESIZED FOR 2FA & TERMINATION) ---
 export async function credentialsAction(main_email, main_password) {
     const email = main_email?.trim().toLowerCase();
     const password = main_password?.trim();
 
-    if (!email || !password) {
-        return { success: false, message: "Email and password are required" };
-    }
+    if (!email || !password) return { success: false, message: "Email and password are required" };
 
     try {
-        // Query the user from your custom table
         const { rows } = await query("SELECT * FROM paysense_users WHERE email = $1", [email]);
         const user = rows[0];
 
-        // 1. Check if user exists and isn't a social-only account
-        if (!user || user.password === "social") {
-            return { success: false, message: "Invalid email or password" };
-        }
+        if (!user || user.password === "social") return { success: false, message: "Invalid credentials" };
 
-        // 2. Verify Bcrypt password
         const isValid = await bcrypt.compare(password, user.password);
-        if (!isValid) return { success: false, message: "Invalid email or password" };
+        if (!isValid) return { success: false, message: "Invalid credentials" };
 
-        // 3. Handle Email Verification Redirect
-        if (!user.verified) {
-            await create_otp(email); // Re-send OTP if they aren't verified
-            return {
-                success: false,
-                isUnverified: true,
-                email: user.email,
-                message: "Please verify your email to continue."
-            };
+        // 1. TERMINATION CHECK
+        if (user.terminate) {
+            return { success: false, isTerminated: true, message: "Your account has been terminated." };
         }
 
-        // 4. Log the session via NextAuth
-        // Note: Make sure your auth.ts is configured to handle 'role' in the session
+        // 2. EMAIL VERIFICATION CHECK
+        if (!user.verified) {
+            await create_otp(email, "email_verification");
+            return { success: false, isUnverified: true, email: user.email, message: "Please verify your email." };
+        }
+
+        // 3. 2FA CHECK
+        if (user.two_fa_enabled) {
+            await create_otp(email, "login_verification");
+            return { success: false, requires2FA: true, email: user.email, message: "2FA Required" };
+        }
+
+        // 4. LOG THE SESSION
         await signIn("credentials", {
             id: user.id,
             name: `${user.first_name} ${user.last_name}`,
             email: user.email,
-            role: user.role || 'user', // Essential for your Admin section
+            role: user.role || 'user',
             redirect: false
         });
 
         return { success: true };
     } catch (e) {
-        console.error("Login error:", e);
-        return { success: false, message: "Something went wrong. Please try again." };
+        return { success: false, message: "Login failed. Try again." };
     }
 }
 
@@ -157,9 +134,7 @@ export async function handle_Signup(first_name, last_name, email, password, conf
     const fname = first_name?.trim();
     const lname = last_name?.trim();
 
-    if (!fname || !lname || !mail || !password || !confirm_password) {
-        return { success: false, message: "All fields are required" };
-    }
+    if (!fname || !lname || !mail || !password || !confirm_password) return { success: false, message: "All fields are required" };
     if (password !== confirm_password) return { success: false, message: "Passwords do not match" };
 
     try {
@@ -167,221 +142,181 @@ export async function handle_Signup(first_name, last_name, email, password, conf
         if (check.rows.length > 0) return { success: false, message: "Email already in use" };
 
         const hashedPassword = await bcrypt.hash(password, 12);
-
         await query(
-            "INSERT INTO paysense_users (first_name, last_name, email, password, verified) VALUES ($1, $2, $3, $4, $5)",
-            [fname, lname, mail, hashedPassword, false]
+            "INSERT INTO paysense_users (first_name, last_name, email, password, verified) VALUES ($1, $2, $3, $4, false)",
+            [fname, lname, mail, hashedPassword]
         );
 
-        await create_otp(mail);
+        await create_otp(mail, "email_verification");
         return { success: true, message: "Verify your email to continue" };
     } catch (e) {
-        console.error("Signup error:", e);
         return { success: false, message: "Server error" };
-    }
-}
-
-// --- OTP LOGIC ---
-export async function otpVerification(pin, email) {
-    try {
-        const { rows } = await query(
-            "SELECT * FROM otp_verifications WHERE email = $1 AND code = $2 AND purpose = 'email_verification' LIMIT 1",
-            [email, pin]
-        );
-        const record = rows[0];
-
-        if (!record) return { success: false, message: "Invalid Code" };
-
-        if (new Date() > new Date(record.expires_at)) {
-            await query("DELETE FROM otp_verifications WHERE email = $1", [email]);
-            return { success: false, message: "Code expired." };
-        }
-
-        await query("UPDATE paysense_users SET verified = true WHERE email = $1", [email]);
-        // ... (rest of your login logic)
-        
-        await query("DELETE FROM otp_verifications WHERE email = $1", [email]);
-        return { success: true };
-    } catch (e) {
-        return { success: false, message: "Verification failed" };
     }
 }
 
 // --- UNIVERSAL OTP GENERATOR ---
 export async function create_otp(email, purpose = "email_verification") {
     const pin = Math.floor(100000 + Math.random() * 900000).toString();
-    const expires_at = new Date(Date.now() + 900000); // 15 minutes expiry
-
+    
     try {
-        // Clear any existing codes for this email and purpose
-        await query(
-            "DELETE FROM otp_verifications WHERE email = $1 AND purpose = $2", 
-            [email, purpose]
-        );
+        await query("DELETE FROM paysense_verify_email WHERE email = $1", [email]);
+        await query("INSERT INTO paysense_verify_email (email, pin) VALUES ($1, $2)", [email, pin]);
 
-        // Insert new code
-        await query(
-            "INSERT INTO otp_verifications (email, code, purpose, expires_at) VALUES ($1, $2, $3, $4)", 
-            [email, pin, purpose, expires_at]
-        );
-
-        // Nodemailer setup
         const transport = nodemailer.createTransport({
-            host: "smtp.gmail.com", 
-            port: 587,
+            host: "smtp.gmail.com", port: 587,
             auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASSWORD }
         });
+
+        const subjects = {
+            email_verification: "Verify your Paysense Email",
+            pin_setup: "Your Security PIN Setup Code",
+            login_verification: "Login Verification Code (2FA)"
+        };
 
         await transport.sendMail({
             from: `"Paysense" <${process.env.EMAIL_USER}>`,
             to: email,
-            subject: "Your Verification Code",
+            subject: subjects[purpose] || "Security Code",
             html: `
-                <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                    <h2 style="color: #166534;">Verification Code</h2>
-                    <p>Use the code below to complete your <b>${purpose.replace('_', ' ')}</b>.</p>
-                    <h1 style="letter-spacing: 5px; font-size: 32px; color: #333;">${pin}</h1>
-                    <p style="font-size: 12px; color: #888;">This code expires in 15 minutes.</p>
+                <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px; max-width: 400px;">
+                    <h2 style="color: #166534;">Security Code</h2>
+                    <p>Use this code for <b>${purpose.replace('_', ' ')}</b>:</p>
+                    <h1 style="letter-spacing: 8px; font-size: 36px; text-align: center; background: #f4f4f4; padding: 10px;">${pin}</h1>
+                    <p style="font-size: 12px; color: #888;">Valid for 15 minutes.</p>
                 </div>
             `
         });
 
         return { success: true };
     } catch (e) {
-        console.error("OTP Error:", e);
         return { success: false, message: "Failed to send code." };
     }
 }
 
-// --- GET CURRENT USER ---
-export async function getCurrentUser() {
-    noStore()
-    const session = await auth();
-    const user_id = session?.user?.id
-
-    if (!user_id) {
-        return { success: false, message: "Session not found, login in to fix issue" }
-    }
-
-    try {
-        // 1. Get User Details
-        const { rows: user_details } = await query(
-            "SELECT id, first_name, last_name, email, phone, image FROM paysense_users WHERE id = $1", 
-            [user_id]
-        );
-
-        // 2. Get Account Details (Including the new account number columns)
-        const { rows: account_details } = await query(
-            `SELECT * FROM paysense_accounts WHERE user_id = $1`, 
-            [user_id]
-        );
-
-        // 3. If no account exists, create one with unique numbers
-        if (!account_details[0]) {
-            // Generate two different 10-digit numbers
-            const checkingNum = Math.floor(1000000000 + Math.random() * 9000000000).toString();
-            const savingsNum = Math.floor(1000000000 + Math.random() * 9000000000).toString();
-
-            const insert_account_details = await query(
-                `INSERT INTO paysense_accounts 
-                 (user_id, checking_balance, savings_balance, checking_account_number, savings_account_number) 
-                 VALUES ($1, $2, $3, $4, $5) 
-                 RETURNING id, user_id, checking_balance, savings_balance, checking_account_number, savings_account_number`, 
-                [user_id, 0.00, 0.00, checkingNum, savingsNum]
-            );
-
-            return { success: true, user_details, account_details: insert_account_details.rows };
-        }
-        return { success: true, user_details, account_details };
-
-    } catch (e) {
-        // If a duplicate key error happens (highly unlikely with 10 digits), 
-        // the unique constraint will catch it here.
-        console.error("Get current user error:", e);
-        return { success: false, message: "Database sync error" };
-    }
-}
-
-// --- PROFILE UPDATE & KYC SUBMISSION ---
-export async function updateProfile(formData) {
-    const first_name = formData.get('first_name').trim()
-    const last_name = formData.get('last_name').trim()
-    const phone = formData.get('phone')
-
-    const session = await auth()
-    const user = session?.user?.id
-
-    if (!user) {
-        return { success: false, message: 'User not authenticated, login to fix issue' }
-    }
-
-    if (!first_name || !last_name) {
-        return { success: false, message: 'First and last name are required' }
-    }
-
-    try {
-        const update_text = await query(
-            "UPDATE paysense_users SET first_name = $1, last_name = $2, phone = $3 WHERE id = $4 RETURNING id, first_name, last_name, phone, email, verified, image",
-            [first_name, last_name, phone, user]
-        );
-
-        if (update_text.rowCount === 0) {
-            return { success: false, message: 'Profile update failed' }
-        }
-        console.log("Updated user:", update_text.rows[0])
-        return { success: true, user: update_text.rows[0] }
-
-    }
-    catch (err) {
-    console.log(err)
-        return { success: false, message: 'Database update failed' }
-    }
-
-    // LOGIC: Here you would use Prisma/Supabase to update the DB
-    console.log("Updating DB with:", { name, phone })
-
-    // Refresh the page data
-    revalidatePath('/app/settings')
-    return { success: true }
-}
-
-export async function submitKYC(formData) {
-    const idType = formData.get('idType')
-    // LOGIC: Handle document upload/verification
-    console.log("KYC Submitted for type:", idType)
-
-    revalidatePath('/app/settings')
-    return { success: true, status: 'pending' }
-}
-
+// --- FINALIZE PIN SETUP ---
 export async function finalizePinSetup(formData) {
     const session = await auth();
     const userId = session?.user?.id;
     const email = session?.user?.email;
 
-    const otp = formData.get('otp');
-    const pin = formData.get('pin');
+    const otp_input = formData.get('otp');
+    const new_pin = formData.get('pin');
 
     try {
-        // 1. Verify OTP
-        const res = await query(
-            "SELECT * FROM otp_verifications WHERE email = $1 AND code = $2 AND purpose = 'pin_setup'",
-            [email, otp]
+        const { rows } = await query(
+            "SELECT * FROM paysense_verify_email WHERE email = $1 AND pin = $2",
+            [email, otp_input]
         );
 
-        if (res.rows.length === 0 || new Date() > new Date(res.rows[0].expires_at)) {
-            return { success: false, error: "Invalid or expired code." };
-        }
+        if (rows.length === 0) return { success: false, error: "Invalid code." };
 
-        // 2. Update PIN
-        await query("UPDATE paysense_accounts SET pin = $1 WHERE user_id = $2", [pin, userId]);
-        
-        // 3. Cleanup OTP
-        await query("DELETE FROM otp_verifications WHERE email = $1", [email]);
+        const hashedPin = await bcrypt.hash(new_pin, 10);
+        await query("UPDATE paysense_accounts SET pin = $1 WHERE user_id = $2", [hashedPin, userId]);
+        await query("DELETE FROM paysense_verify_email WHERE email = $1", [email]);
 
         revalidatePath('/app/settings');
         return { success: true };
     } catch (e) {
-        return { success: false, error: "System error. Try again." };
+        return { success: false, error: "System error." };
+    }
+}
+
+// --- OTP VERIFICATION (FOR SIGNUP/LOGIN/2FA) ---
+export async function otpVerification(pin, email) {
+    try {
+        const { rows } = await query(
+            "SELECT * FROM paysense_verify_email WHERE email = $1 AND pin = $2",
+            [email, pin]
+        );
+
+        if (rows.length === 0) return { success: false, message: "Invalid Code" };
+
+        const codeDate = new Date(rows[0].date);
+        if ((new Date() - codeDate) > 15 * 60 * 1000) {
+             await query("DELETE FROM paysense_verify_email WHERE email = $1", [email]);
+             return { success: false, message: "Code expired." };
+        }
+
+        // Only update 'verified' status if they were currently unverified
+        await query("UPDATE paysense_users SET verified = true WHERE email = $1", [email]);
+        await query("DELETE FROM paysense_verify_email WHERE email = $1", [email]);
+        
+        return { success: true };
+    } catch (e) {
+        return { success: false, message: "Verification failed" };
+    }
+}
+
+// --- TOGGLE 2FA ---
+export async function toggle2FA(userId, currentState) {
+    const session = await auth();
+    if (!session || session?.user?.id !== userId) return { success: false, error: "Unauthorized." };
+
+    try {
+        const newState = !currentState;
+        const result = await query(
+            "UPDATE paysense_users SET two_fa_enabled = $1 WHERE id = $2 RETURNING two_fa_enabled",
+            [newState, userId]
+        );
+
+        if (result.rowCount === 0) return { success: false, error: "User not found." };
+        return { success: true, newState: result.rows[0].two_fa_enabled };
+    } catch (error) {
+        return { success: false, error: "Database error." };
+    }
+}
+
+// --- GET CURRENT USER (INCLUDES TERMINATE & 2FA STATUS) ---
+export async function getCurrentUser() {
+    noStore();
+    const session = await auth();
+    const user_id = session?.user?.id;
+
+    if (!user_id) return { success: false, message: "Session missing." };
+
+    try {
+        const { rows: user_details } = await query(
+            "SELECT id, first_name, last_name, email, phone, image, two_fa_enabled, terminate, verified, role FROM paysense_users WHERE id = $1", 
+            [user_id]
+        );
+
+        const { rows: account_details } = await query("SELECT * FROM paysense_accounts WHERE user_id = $1", [user_id]);
+
+        if (!account_details[0]) {
+            const checkingNum = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+            const savingsNum = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+
+            const insert = await query(
+                "INSERT INTO paysense_accounts (user_id, checking_balance, savings_balance, checking_account_number, savings_account_number) VALUES ($1, 0, 0, $2, $3) RETURNING *", 
+                [user_id, checkingNum, savingsNum]
+            );
+            return { success: true, user_details, account_details: insert.rows };
+        }
+        return { success: true, user_details, account_details };
+    } catch (e) {
+        return { success: false, message: "Sync error." };
+    }
+}
+
+// --- PROFILE UPDATE ---
+export async function updateProfile(formData) {
+    const first_name = formData.get('first_name')?.trim();
+    const last_name = formData.get('last_name')?.trim();
+    const phone = formData.get('phone');
+
+    const session = await auth();
+    const user_id = session?.user?.id;
+
+    if (!user_id || !first_name || !last_name) return { success: false, message: 'Invalid data' };
+
+    try {
+        const result = await query(
+            "UPDATE paysense_users SET first_name = $1, last_name = $2, phone = $3 WHERE id = $4 RETURNING *",
+            [first_name, last_name, phone, user_id]
+        );
+        revalidatePath('/app/settings');
+        return { success: true, user: result.rows[0] };
+    } catch (err) {
+        return { success: false, message: 'Update failed' };
     }
 }

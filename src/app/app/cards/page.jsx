@@ -215,7 +215,8 @@ export default function CardIssuingPage() {
                     ) : transactions.length > 0 ? (
                         transactions.map((tx, idx) => (
                             <CardTransactionItem 
-                                key={idx} 
+                                key={idx}
+                                tr_id={tx.id} 
                                 name={tx.name} 
                                 date={tx.date} 
                                 amount={tx.amount} 
@@ -240,7 +241,7 @@ export default function CardIssuingPage() {
   )
 }
 
-function CardTransactionItem({ name, date, amount, status, category }) {
+function CardTransactionItem({ tr_id, name, date, amount, status, category }) {
     // Ensuring the amount has 2 decimal places regardless of backend input
     const formatValue = (val) => {
         const numeric = parseFloat(val.replace(/[^\d.-]/g, ''));
@@ -249,6 +250,7 @@ function CardTransactionItem({ name, date, amount, status, category }) {
     }
 
     return (
+        <Link href={`/app/transaction-details/${tr_id}`}>
         <div className="group flex justify-between items-center p-4 bg-white rounded-[28px] border border-slate-100 shadow-sm transition-all active:scale-[0.98] hover:border-primary/20">
             <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 border border-slate-50 group-hover:bg-primary/5 group-hover:text-primary transition-colors">
@@ -271,5 +273,6 @@ function CardTransactionItem({ name, date, amount, status, category }) {
                 </div>
             </div>
         </div>
+        </Link>
     )
 }

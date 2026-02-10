@@ -17,7 +17,7 @@ export async function GET() {
     try {
         // 1. Get User
         const { rows: user_rows } = await query(
-            "SELECT id, first_name, last_name, email, phone, image FROM paysense_users WHERE id = $1", 
+            "SELECT id, first_name, last_name, email, phone, image, two_fa_enabled FROM paysense_users WHERE id = $1", 
             [user_id]
         );
 
@@ -41,8 +41,6 @@ export async function GET() {
             );
             account_rows = new_account;
         }
-
-        console.log(user_rows[0])
 
         // Return fresh data
         return NextResponse.json({ 

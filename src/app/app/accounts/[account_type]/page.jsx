@@ -166,6 +166,7 @@ function TransactionRow({ tx }) {
     const isCredit = tx.direction === 'credit';
 
     return (
+    	<Link href={`/app/transaction-details/${tx.id}`}>
         <div className="flex justify-between items-center group cursor-pointer">
             <div className="flex items-center gap-4">
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isCredit ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
@@ -183,5 +184,6 @@ function TransactionRow({ tx }) {
                 <p className="text-[9px] text-slate-300 font-bold uppercase italic">{tx.status}</p>
             </div>
         </div>
+        </Link>
     )
 }

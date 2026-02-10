@@ -144,6 +144,7 @@ export async function getCardTransactions() {
     try {
         const res = await query(
             `SELECT 
+                id,
                 description as name, 
                 TO_CHAR(created_at, 'Mon DD, HH:MI AM') as date, 
                 amount, 

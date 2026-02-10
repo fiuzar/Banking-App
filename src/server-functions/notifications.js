@@ -14,12 +14,13 @@ export async function get_notification_list() {
     try {
         const res = await query(
             `SELECT 
-    id, 
-    type, 
-    title, 
-    message, 
-    is_read, 
-    created_at AT TIME ZONE 'UTC' as created_at FROM paysense_notifications 
+                id, 
+                type, 
+                title, 
+                message, 
+                is_read, 
+                created_at -- Simplest approach
+             FROM paysense_notifications 
              WHERE user_id = $1 
              ORDER BY created_at DESC LIMIT 50`,
             [userId]
@@ -30,7 +31,6 @@ export async function get_notification_list() {
         return { success: false, notifications: [] }
     }
 }
-
 // 2. Mark a single or ALL notifications as read
 export async function mark_notification_read(notificationId) {
     const session = await auth()

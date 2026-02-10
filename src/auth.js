@@ -12,6 +12,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
     Credentials({
       async authorize(credentials) {
+        // This receives the data from signIn("credentials", { ... }) in authentication.js
         if (!credentials?.email || !credentials?.id) return null;
         return {
           id: credentials.id,
@@ -30,7 +31,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const lastName = profile?.family_name || "";
           const image = profile?.picture;
 
-          const { rows } = await query("SELECT * FROM paysense_users WHERE email = $1", [email]);
+          const { rows } = await query("SELECT terminate FROM paysense_users WHERE email = $1", [email]);
+
+          // 1. TERMINATION CHECK FOR GOOGLE USERS
+          if (rows.length > 0 && rows[0].terminate) {
+            return false; // Blocks the sign in completely
+          }
 
           if (rows.length === 0) {
             // New user via Google
@@ -48,23 +54,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true;
     },
 
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       // This runs on login and whenever the token is read
       try {
-        if (user || !token.role) { 
-          // Re-fetch user data to ensure role and stripe_id are always present
+        // Refresh data from DB to ensure session is always up-to-date with termination/verification status
+        if (token.email) {
           const { rows } = await query(
-            "SELECT id, verified, role, stripe_connect_id FROM paysense_users WHERE email = $1",
+            "SELECT id, verified, role, stripe_connect_id, terminate, two_fa_enabled FROM paysense_users WHERE email = $1",
             [token.email]
           );
 
           if (rows.length > 0) {
             token.id = rows[0].id;
             token.verified = rows[0].verified;
-            token.role = rows[0].role; // Needed for Admin
-            token.stripe_connect_id = rows[0].stripe_connect_id; // Needed for Finance
+            token.role = rows[0].role;
+            token.stripe_connect_id = rows[0].stripe_connect_id;
+            token.terminate = rows[0].terminate; // CRITICAL for Proxy
+            token.two_fa_enabled = rows[0].two_fa_enabled; // CRITICAL for App Logic
           }
         }
+        
+        // Handle manual session updates if you use update() from useSession
+        if (trigger === "update" && session) {
+            return { ...token, ...session.user };
+        }
+
         return token;
       } catch (e) {
         console.error("JWT callback error:", e);
@@ -74,11 +88,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
     async session({ session, token }) {
       try {
-        if (session.user) {
+        if (session.user && token) {
           session.user.id = token.id;
           session.user.verified = token.verified;
-          session.user.role = token.role; // Now accessible in frontend as session.data.user.role
+          session.user.role = token.role;
           session.user.stripe_connect_id = token.stripe_connect_id;
+          session.user.terminate = token.terminate; // Pass to frontend & middleware
+          session.user.two_fa_enabled = token.two_fa_enabled; // Pass to frontend & middleware
         }
         return session;
       } catch (e) {
@@ -89,6 +105,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   pages: {
     signIn: "/login",
+    error: "/login", // Redirect to login on auth errors
   },
-  session: { strategy: "jwt" },
+  session: { 
+    strategy: "jwt",
+    maxAge: 30 * 60, // Optional: Auto logout after 30 mins of inactivity for security
+  },
 });

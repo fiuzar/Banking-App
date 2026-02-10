@@ -4,6 +4,7 @@ import { query } from "@/dbh"
 import { auth } from "@/auth"
 import Stripe from 'stripe'
 import { revalidatePath } from 'next/cache'
+import bcrypt from "bcryptjs" // Import bcrypt
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
@@ -18,7 +19,7 @@ export async function initiateWireTransfer(formData) {
     const routingNumber = formData.get('routingNumber')
     const accountNumber = formData.get('accountNumber')
     const sourceAccount = formData.get('sourceAccount') // 'savings' or 'checking'
-    const pin = formData.get('pin')
+    const pinInput = formData.get('pin') // The raw 4-digit code from the form
     
     const wireFee = 25.00 
     const totalDeduction = amount + wireFee
@@ -28,7 +29,7 @@ export async function initiateWireTransfer(formData) {
 
         // 1. Get User Data & Check PIN
         const userRes = await query(
-            `SELECT u.stripe_connect_id, u.kyc_status, u.password, a.checking_balance, a.savings_balance, pin 
+            `SELECT u.stripe_connect_id, u.kyc_status, a.checking_balance, a.savings_balance, a.pin 
              FROM paysense_users u 
              JOIN paysense_accounts a ON u.id = a.user_id 
              WHERE u.id = $1 FOR UPDATE`,
@@ -37,14 +38,27 @@ export async function initiateWireTransfer(formData) {
 
         const user = userRes.rows[0]
         if (!user) throw new Error("Account not found.")
-        if (user.kyc_status !== 'verified') throw new Error("KYC Verification required for Wires.")
+        
+        // --- PIN VERIFICATION LOGIC ---
+        if (!user.pin) {
+            throw new Error("Transaction PIN not set. Please set it up in Settings.")
+        }
 
-        if(!user.pin || user.pin !== pin) throw new Error("Invalid pin, if you don't have pin, set it up in settings")
+        // Use bcrypt to compare the raw input with the hashed PIN in DB
+        const isPinValid = await bcrypt.compare(pinInput, user.pin)
+        if (!isPinValid) {
+            throw new Error("Invalid Transaction PIN.")
+        }
+        // ------------------------------
+
+        if (user.kyc_status !== 'verified') {
+            throw new Error("KYC Verification required for Wire Transfers.")
+        }
 
         // 2. Validate Balance based on source
         const currentBalance = sourceAccount === 'savings' ? user.savings_balance : user.checking_balance
         if (parseFloat(currentBalance) < totalDeduction) {
-            throw new Error(`Insufficient funds in ${sourceAccount} account.`)
+            throw new Error(`Insufficient funds in your ${sourceAccount} account.`)
         }
 
         // 3. Move money in Stripe Connect
@@ -74,12 +88,13 @@ export async function initiateWireTransfer(formData) {
         await query(
             `INSERT INTO paysense_transactions (user_id, amount, type, description, status, reference_id) 
              VALUES ($1, $2, 'wire_transfer', $3, 'processing', $4)`,
-            [userId, amount, `Wire to ${recipientName}`, 'processing', payout.id]
+            [userId, amount, `Wire to ${recipientName}`, payout.id]
         )
 
+        // 6. Send Notification (Fixed senderId -> userId)
         await query(
             `INSERT INTO paysense_notifications (user_id, type, title, message) VALUES ($1, $2, $3, $4)`,
-            [senderId, "Pending", "Wire Transfer", `Your transfer of $${amount} has been initiated, this takes up to 2 business days to complete`]
+            [userId, "Pending", "Wire Transfer", `Your transfer of $${amount} to ${recipientName} has been initiated.`]
         )
 
         await query('COMMIT')
@@ -88,6 +103,7 @@ export async function initiateWireTransfer(formData) {
 
     } catch (error) {
         await query('ROLLBACK')
+        console.error("Wire Transfer Error:", error.message)
         return { success: false, error: error.message }
     }
 }
