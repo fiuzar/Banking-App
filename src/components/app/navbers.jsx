@@ -58,7 +58,7 @@ export function DesktopNaBar() {
     }, [user_id]);
 
     return (
-        <aside className="hidden md:flex w-72 flex-col bg-card border-r border-border sticky top-0 h-screen p-6">
+        <aside className="hidden print:hidden md:flex w-72 flex-col bg-card border-r border-border sticky top-0 h-screen p-6">
             <div className="mb-10 px-2 flex items-center gap-2">
                 <div className="w-8 h-8 bg-primary rounded-lg" />
                 <span className="font-bold text-2xl tracking-tighter text-primary">Paysense</span>
@@ -108,7 +108,7 @@ export function MobileNavBar() {
     }, [session?.user?.id]);
 
     return (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border px-4 py-3 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+        <nav className="md:hidden print:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border px-4 py-3 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
             <div className="flex justify-between items-center max-w-md mx-auto">
                 <MobileNavItem href="/app/settings" icon={<Settings size={22} />} label="Settings" />
                <MobileNavItem 
