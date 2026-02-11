@@ -1,38 +1,43 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useContext } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 import { 
-  ArrowLeft, Zap, Wifi, Tv, Phone, Home, Plus, Trash2, 
-  ShoppingCart, CheckCircle2, CreditCard, ChevronRight 
+  ArrowLeft, Zap, Wifi, Tv, Phone, Plus, Trash2, 
+  ShoppingCart, CheckCircle2, CreditCard, ChevronRight, X 
 } from "lucide-react"
 import Link from "next/link"
 import { processBillBasket } from "@/server-functions/pay-bills"
+import {AccountDetailsContext} from "@/server-functions/contexts"
 
 const categories = [
-  { id: 'elec', name: 'Electricity', icon: <Zap size={18} />, color: 'bg-amber-500' },
-  { id: 'net', name: 'Internet', icon: <Wifi size={18} />, color: 'bg-blue-500' },
-  { id: 'cable', name: 'Cable TV', icon: <Tv size={18} />, color: 'bg-purple-500' },
-  { id: 'mobile', name: 'Airtime', icon: <Phone size={18} />, color: 'bg-emerald-500' },
+  { id: 'elec', name: 'Electricity', icon: <Zap size={18} />, color: 'bg-amber-500', fieldLabel: 'Meter Number', placeholder: 'Enter 11-digit meter #' },
+  { id: 'net', name: 'Internet', icon: <Wifi size={18} />, color: 'bg-blue-500', fieldLabel: 'User ID / Account', placeholder: 'e.g. Fiber-9920' },
+  { id: 'cable', name: 'Cable TV', icon: <Tv size={18} />, color: 'bg-purple-500', fieldLabel: 'Smartcard Number', placeholder: 'Enter IUC number' },
+  { id: 'mobile', name: 'Airtime', icon: <Phone size={18} />, color: 'bg-emerald-500', fieldLabel: 'Phone Number', placeholder: '0800 000 0000' },
 ]
 
+const QUICK_AMOUNTS = [10, 20, 50, 100];
+
 export default function PayBillsPage() {
-  const [basket, setBasket] = useState([]) // Array of up to 5 bills
-  const [step, setStep] = useState(1) // 1: Basket/Select, 2: Checkout, 3: Success
+  const {accountDetails, setAccountDetails} = useContext(AccountDetailsContext)
+  const [basket, setBasket] = useState([])
+  const [step, setStep] = useState(1) 
   const [isAdding, setIsAdding] = useState(false)
-  const [currentBill, setCurrentBill] = useState({ catId: '', customerId: '', amount: '' })
+  const [currentBill, setCurrentBill] = useState({ catId: '', identifier: '', amount: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
+  const activeCategory = categories.find(c => c.id === currentBill.catId)
+
   const addToBasket = () => {
-    if (basket.length >= 5) return alert("Maximum 5 bills per transaction")
-    const category = categories.find(c => c.id === currentBill.catId)
-    setBasket([...basket, { ...currentBill, category }])
+    if (basket.length >= 5) return;
+    setBasket([...basket, { ...currentBill, category: activeCategory }])
     setIsAdding(false)
-    setCurrentBill({ catId: '', customerId: '', amount: '' })
+    setCurrentBill({ catId: '', identifier: '', amount: '' })
   }
 
   const removeFromBasket = (index) => {
@@ -41,200 +46,224 @@ export default function PayBillsPage() {
 
   const totalAmount = basket.reduce((sum, item) => sum + Number(item.amount), 0)
 
-  // Checkout handler
   const handleCheckout = async () => {
     setLoading(true)
     setError("")
     const result = await processBillBasket(basket)
     setLoading(false)
     if (result.success) {
-      setStep(3)
-    } else {
-      setError(result.message || "Payment failed. Please try again.")
+      setAccountDetails(result.account_details)
+setStep(3)
     }
+    else setError(result.message || "Payment failed.")
   }
 
   if (step === 3) return <SuccessState />
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
-      {/* Header */}
-      <div className="bg-green-900 p-8 pt-12 mb-7 text-white rounded-b-[40px] shadow-2xl">
-        <div className="flex items-center justify-between mb-10">
+    <div className="min-h-screen bg-slate-50 pb-32">
+      {/* Dynamic Header */}
+      <div className="bg-green-900 p-8 pt-12 text-white rounded-b-[40px] shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16" />
+        
+        <div className="flex items-center justify-between mb-8 relative z-10">
           <Link href="/app" className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
             <ArrowLeft size={20} />
           </Link>
-          <h1 className="text-xl font-black tracking-tight uppercase">Bill Center</h1>
-          <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center font-bold">
-            {basket.length}/5
+          <h1 className="text-sm font-black tracking-[0.3em] uppercase opacity-80">Bill Center</h1>
+          <div className="px-3 py-1 bg-white/10 rounded-full text-[10px] font-black">
+            {basket.length} / 5 ITEMS
           </div>
         </div>
         
-        <div className="flex flex-col items-center py-4">
-          <p className="text-green-300 text-[10px] font-bold uppercase tracking-[0.2em] mb-1">Total Basket Value</p>
-          <h2 className="text-4xl font-black">${totalAmount.toLocaleString()}</h2>
+        <div className="flex flex-col items-center py-4 relative z-10">
+          <p className="text-green-300 text-[10px] font-black uppercase tracking-widest mb-1">Total to Pay</p>
+          <h2 className="text-5xl font-black">${totalAmount.toLocaleString()}</h2>
         </div>
       </div>
 
-      <div className="max-w-md mx-auto p-6 -mt-8 space-y-6">
-        {/* THE BASKET */}
+      <div className="max-w-md mx-auto p-6 -mt-1 space-y-6">
         {step === 1 && (
-        <div className="space-y-3">
-          <div className="flex justify-between items-center px-1">
-            <h3 className="font-black text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2">
-                <ShoppingCart size={16} /> My Items
-            </h3>
-            {basket.length < 5 && !isAdding && (
-                <button onClick={() => setIsAdding(true)} className="text-green-700 font-bold text-xs flex items-center gap-1 hover:underline">
-                    <Plus size={14} /> Add Another
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="font-black text-slate-900 text-xs uppercase tracking-widest flex items-center gap-2">
+                <ShoppingCart size={14} className="text-green-800" /> Your Basket
+              </h3>
+              {basket.length < 5 && !isAdding && (
+                <button onClick={() => setIsAdding(true)} className="bg-green-100 text-green-800 px-3 py-1 rounded-lg font-black text-[10px] uppercase tracking-tighter">
+                  + Add Bill
                 </button>
+              )}
+            </div>
+
+            {basket.length === 0 && !isAdding && (
+              <div className="bg-white border-2 border-dashed border-slate-200 rounded-[32px] py-16 text-center">
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mx-auto mb-4">
+                  <CreditCard size={32} />
+                </div>
+                <p className="text-slate-400 font-bold text-sm">No bills added yet</p>
+                <Button onClick={() => setIsAdding(true)} variant="link" className="text-green-800 font-black uppercase text-xs">Tap here to start</Button>
+              </div>
             )}
+
+            {basket.map((item, idx) => (
+              <div key={idx} className="bg-white p-5 rounded-[28px] border border-slate-100 flex items-center gap-4 shadow-sm group">
+                <div className={`w-12 h-12 ${item.category.color} text-white rounded-2xl flex items-center justify-center shadow-lg`}>
+                  {item.category.icon}
+                </div>
+                <div className="flex-1">
+                  <p className="font-black text-slate-900 text-sm leading-none mb-1">{item.category.name}</p>
+                  <p className="text-[10px] text-slate-400 font-bold font-mono">{item.identifier}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-black text-slate-900 mb-1">${item.amount}</p>
+                  <button onClick={() => removeFromBasket(idx)} className="text-slate-300 hover:text-red-500 transition-colors">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-
-          {basket.length === 0 && !isAdding && (
-            <div className="bg-white border-2 border-dashed border-slate-200 rounded-[32px] p-12 text-center flex flex-col items-center">
-                 <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-4">
-                    <CreditCard size={32} />
-                 </div>
-                 <p className="text-slate-400 font-bold text-sm">Your basket is empty</p>
-                 <Button onClick={() => setIsAdding(true)} variant="link" className="text-green-800 font-black uppercase text-xs mt-2">Start Adding</Button>
-            </div>
-          )}
-
-          {basket.map((item, idx) => (
-            <div key={idx} className="bg-white p-4 rounded-[24px] border border-slate-200 flex items-center gap-4 animate-in fade-in slide-in-from-right-4">
-              <div className={`w-12 h-12 ${item.category.color} text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/10`}>
-                {item.category.icon}
-              </div>
-              <div className="flex-1">
-                <p className="font-black text-slate-900 text-sm leading-tight">{item.category.name}</p>
-                <p className="text-[10px] text-slate-500 font-bold font-mono truncate max-w-[120px]">{item.customerId}</p>
-              </div>
-              <div className="text-right flex items-center gap-3">
-                <span className="font-black text-slate-900">${item.amount}</span>
-                <button onClick={() => removeFromBasket(idx)} className="text-slate-300 hover:text-red-500 transition-colors">
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
         )}
 
-        {/* ADD BILL FORM */}
         {isAdding && (
-          <Card className="rounded-[32px] border-none shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <Card className="rounded-[32px] border-none shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
             <div className="bg-slate-900 p-5 flex justify-between items-center">
-              <span className="text-white text-xs font-black uppercase tracking-widest">New Bill Entry</span>
-              <button onClick={() => setIsAdding(false)} className="text-slate-400 hover:text-white"><Plus className="rotate-45" /></button>
+              <span className="text-white text-[10px] font-black uppercase tracking-[0.2em]">Select Bill Category</span>
+              <button onClick={() => setIsAdding(false)} className="text-slate-400 hover:text-white"><X size={20}/></button>
             </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-4 gap-2">
+            
+            <div className="p-6 space-y-6">
+              {/* Category Selector */}
+              <div className="grid grid-cols-4 gap-3">
                 {categories.map(c => (
                   <button 
                     key={c.id} 
-                    onClick={() => setCurrentBill({...currentBill, catId: c.id})}
-                    className={`p-3 rounded-2xl flex flex-col items-center gap-1 transition-all ${currentBill.catId === c.id ? 'bg-green-800 text-white scale-105' : 'bg-slate-50 text-slate-400'}`}
+                    onClick={() => setCurrentBill({...currentBill, catId: c.id, identifier: ''})}
+                    className={`p-4 rounded-2xl flex flex-col items-center gap-2 transition-all ${currentBill.catId === c.id ? 'bg-green-800 text-white scale-105 shadow-xl shadow-green-900/20' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
                   >
                     {c.icon}
-                    <span className="text-[8px] font-black uppercase">{c.id}</span>
+                    <span className="text-[8px] font-black uppercase tracking-tighter">{c.name}</span>
                   </button>
                 ))}
               </div>
-              
-              <div className="space-y-1">
-                <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Customer ID</Label>
-                <Input 
-                   className="h-12 rounded-xl bg-slate-50 border-none font-bold" 
-                   placeholder="Meter or Smartcard #"
-                   value={currentBill.customerId}
-                   onChange={(e) => setCurrentBill({...currentBill, customerId: e.target.value})}
-                />
-              </div>
 
-              <div className="space-y-1">
-                <Label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Amount ($)</Label>
-                <Input 
-                   type="number"
-                   className="h-12 rounded-xl bg-slate-50 border-none font-black text-green-800 text-lg" 
-                   placeholder="0.00"
-                   value={currentBill.amount}
-                   onChange={(e) => setCurrentBill({...currentBill, amount: e.target.value})}
-                />
-              </div>
+              {activeCategory && (
+                <div className="space-y-4 animate-in fade-in duration-300">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{activeCategory.fieldLabel}</Label>
+                    <Input 
+                       className="h-14 rounded-2xl bg-slate-50 border-none font-bold text-slate-900 focus:ring-2 focus:ring-green-800 transition-all" 
+                       placeholder={activeCategory.placeholder}
+                       value={currentBill.identifier}
+                       onChange={(e) => setCurrentBill({...currentBill, identifier: e.target.value})}
+                    />
+                  </div>
 
-              <Button onClick={addToBasket} disabled={!currentBill.catId || !currentBill.amount} className="w-full h-12 bg-green-800 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-green-900/20">
-                Add to Basket
-              </Button>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Amount to pay ($)</Label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-green-800 text-lg">$</span>
+                      <Input 
+                         type="number"
+                         className="h-14 rounded-2xl bg-slate-50 border-none pl-10 font-black text-green-800 text-xl focus:ring-2 focus:ring-green-800" 
+                         placeholder="0.00"
+                         value={currentBill.amount}
+                         onChange={(e) => setCurrentBill({...currentBill, amount: e.target.value})}
+                      />
+                    </div>
+                    {/* Quick Selection for Airtime/Small Bills */}
+                    <div className="flex gap-2 pt-1">
+                      {QUICK_AMOUNTS.map(amt => (
+                        <button 
+                          key={amt}
+                          onClick={() => setCurrentBill({...currentBill, amount: amt.toString()})}
+                          className="flex-1 py-2 bg-slate-100 rounded-lg text-[10px] font-black text-slate-600 hover:bg-green-50 hover:text-green-800 transition-colors"
+                        >
+                          ${amt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Button onClick={addToBasket} disabled={!currentBill.identifier || !currentBill.amount} className="w-full h-14 bg-green-800 hover:bg-green-900 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-green-900/20 mt-4">
+                    Add to Basket
+                  </Button>
+                </div>
+              )}
             </div>
           </Card>
         )}
 
-        {/* CHECKOUT STEP */}
         {step === 2 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-            <h2 className="text-xl font-black text-slate-900 mb-2">Review & Pay</h2>
-            <Card className="rounded-[24px] p-6 space-y-4 border-slate-100 shadow-sm">
+          <div className="space-y-6 animate-in slide-in-from-right-8">
+            <h2 className="text-xl font-black text-slate-900">Checkout</h2>
+            <Card className="rounded-[32px] p-8 space-y-5 border-none shadow-sm">
               {basket.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-8 h-8 ${item.category.color} text-white rounded-xl flex items-center justify-center`}>
+                <div key={idx} className="flex items-center justify-between border-b border-slate-50 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 ${item.category.color} text-white rounded-lg flex items-center justify-center`}>
                       {item.category.icon}
                     </div>
-                    <span className="font-bold text-slate-900 text-sm">{item.category.name}</span>
+                    <div>
+                      <p className="font-black text-slate-900 text-[10px] uppercase">{item.category.name}</p>
+                      <p className="text-[10px] font-mono text-slate-400">{item.identifier}</p>
+                    </div>
                   </div>
-                  <span className="font-mono text-xs text-slate-500">{item.customerId}</span>
                   <span className="font-black text-slate-900">${item.amount}</span>
                 </div>
               ))}
-              <div className="border-t pt-4 mt-4 flex justify-between items-center">
-                <span className="font-bold text-slate-500">Total</span>
-                <span className="font-black text-green-800 text-lg">${totalAmount.toLocaleString()}</span>
+              <div className="pt-2 flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Grand Total</span>
+                <span className="font-black text-green-800 text-2xl">${totalAmount.toLocaleString()}</span>
               </div>
             </Card>
-            {error && <div className="text-red-500 text-sm font-bold text-center">{error}</div>}
-            <Button onClick={handleCheckout} disabled={loading} className="w-full h-14 bg-green-800 rounded-2xl font-black text-lg shadow-xl shadow-green-900/20">
-              {loading ? "Processing..." : "Confirm & Pay"}
+            <Button onClick={handleCheckout} disabled={loading} className="w-full h-16 bg-green-800 rounded-2xl font-black text-lg shadow-xl shadow-green-900/20">
+              {loading ? <Loader2 className="animate-spin" /> : "Authorize Payment"}
             </Button>
-            <button onClick={() => setStep(1)} className="w-full text-sm font-bold text-slate-400 mt-2">Back to Basket</button>
+            <button onClick={() => setStep(1)} className="w-full text-xs font-black text-slate-400 uppercase tracking-widest">Edit Basket</button>
           </div>
         )}
-
-        {/* FOOTER ACTION */}
-        {basket.length > 0 && !isAdding && step === 1 && (
-            <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-slate-100 rounded-t-[40px] shadow-[0_-20px_40px_rgba(0,0,0,0.05)]">
-                <div className="max-w-md mx-auto flex items-center justify-between gap-4">
-                    <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pay via Checking</span>
-                        <span className="font-black text-slate-900">**** 6708</span>
-                    </div>
-                    <Button onClick={() => setStep(2)} className="flex-1 h-14 bg-green-800 rounded-2xl font-black text-lg shadow-xl shadow-green-900/20 group">
-                        Confirm & Pay <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                </div>
-            </div>
-        )}
       </div>
+
+      {/* STICKY BOTTOM BAR */}
+      {basket.length > 0 && !isAdding && step === 1 && (
+        <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-slate-100 rounded-t-[40px] shadow-[0_-20px_60px_rgba(0,0,0,0.08)] z-50">
+          <div className="max-w-md mx-auto flex items-center justify-between gap-6">
+            <div className="flex flex-col">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Settlement</span>
+              <span className="font-black text-slate-900 text-sm flex items-center gap-1">
+                Checking <ChevronRight size={12} className="text-green-800" />
+              </span>
+            </div>
+            <Button onClick={() => setStep(2)} className="flex-1 h-16 bg-green-800 hover:bg-green-900 rounded-2xl font-black text-lg shadow-xl shadow-green-900/30 group">
+              Checkout <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 function SuccessState() {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
-        <div className="relative mb-8">
-            <div className="absolute inset-0 bg-green-100 rounded-full scale-150 animate-pulse"></div>
-            <div className="relative w-24 h-24 bg-green-800 text-white rounded-full flex items-center justify-center shadow-2xl shadow-green-900/40">
-                <CheckCircle2 size={48} strokeWidth={3} />
-            </div>
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-500">
+        <div className="w-24 h-24 bg-green-100 text-green-800 rounded-full flex items-center justify-center mb-6 relative">
+            <div className="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-20" />
+            <CheckCircle2 size={56} strokeWidth={3} />
         </div>
-        <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Success!</h2>
-        <p className="text-slate-500 font-medium max-w-[280px] mb-8">
-            Your bills have been settled. ALAT processing reference: <span className="font-mono text-green-700">#AL-992384</span>
+        <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Settled!</h2>
+        <p className="text-slate-400 text-sm font-medium max-w-[240px] mb-12">
+            Your payments are being processed. Check your transaction history for receipts.
         </p>
         <Link href="/app" className="w-full max-w-xs">
-          <Button className="w-full h-14 bg-slate-900 rounded-2xl font-black uppercase tracking-widest">Done</Button>
+          <Button className="w-full h-16 bg-slate-900 rounded-[24px] font-black uppercase tracking-widest hover:bg-black transition-all">Back to Dashboard</Button>
         </Link>
       </div>
     )
-  }
+}
+
+function Loader2({ className }) {
+  return <div className={`w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin ${className}`} />
+}

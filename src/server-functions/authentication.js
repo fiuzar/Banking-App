@@ -217,6 +217,7 @@ export async function finalizePinSetup(formData) {
         revalidatePath('/app/settings');
         return { success: true };
     } catch (e) {
+        console.error(e)
         return { success: false, error: "System error." };
     }
 }
@@ -231,18 +232,26 @@ export async function otpVerification(pin, email) {
 
         if (rows.length === 0) return { success: false, message: "Invalid Code" };
 
-        const codeDate = new Date(rows[0].date);
-        if ((new Date() - codeDate) > 15 * 60 * 1000) {
+        // FIX: Ensure codeDate is parsed correctly regardless of environment
+        const codeTime = new Date(rows[0].date).getTime();
+        const currentTime = new Date().getTime();
+        
+        const diffInMinutes = (currentTime - codeTime) / (1000 * 60);
+
+        // Debugging tip: Log this if it still fails
+        // console.log(`Diff: ${diffInMinutes} mins. DB: ${rows[0].date}, Now: ${new Date().toISOString()}`);
+
+        if (diffInMinutes > 15) {
              await query("DELETE FROM paysense_verify_email WHERE email = $1", [email]);
              return { success: false, message: "Code expired." };
         }
 
-        // Only update 'verified' status if they were currently unverified
         await query("UPDATE paysense_users SET verified = true WHERE email = $1", [email]);
         await query("DELETE FROM paysense_verify_email WHERE email = $1", [email]);
         
         return { success: true };
     } catch (e) {
+        console.error(e);
         return { success: false, message: "Verification failed" };
     }
 }
