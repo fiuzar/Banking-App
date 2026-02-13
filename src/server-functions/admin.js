@@ -227,6 +227,8 @@ export async function getTicketDetails(conversationId) {
             JOIN paysense_users u ON t.user_id = u.id
             WHERE c.id = $1
         `, [conversationId]);
+
+        console.log(rows[0])
         
         return { success: true, ticket: rows[0] };
     } catch (e) {

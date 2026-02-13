@@ -21,22 +21,39 @@ export async function getTicketList() {
 }
 
 // 2. GET TICKET DETAILS & MESSAGES
-export async function getTicketDetails(ticketId) {
-    const ticket = await query(`SELECT * FROM paysense_tickets WHERE id = $1`, [ticketId]);
-    
-    // Get messages linked via the conversation
-    const messages = await query(
-        `SELECT m.* FROM paysense_messages m
-         JOIN paysense_conversations c ON m.conversation_id = c.id
-         WHERE c.ticket_id = $1
-         ORDER BY m.created_at ASC`,
-        [ticketId]
-    );
+export async function getTicketDetails(id) {
+    try {
+        // 1. Find the ticket and its linked conversation in one go
+        const result = await query(`
+            SELECT t.*, c.id as conversation_id 
+            FROM paysense_tickets t
+            JOIN paysense_conversations c ON t.id = c.ticket_id
+            WHERE t.id = $1::text OR c.id = $1::text
+        `, [id]);
 
-    return {
-        ticket: ticket.rows[0],
-        replies: messages.rows
-    };
+        if (result.rows.length === 0) {
+            return { success: false, message: "Ticket not found" };
+        }
+
+        const ticket = result.rows[0];
+
+        // 2. Get all messages for that conversation
+        const messages = await query(
+            `SELECT * FROM paysense_messages 
+             WHERE conversation_id = $1::text 
+             ORDER BY created_at ASC`,
+            [ticket.conversation_id]
+        );
+
+        return {
+            success: true,
+            ticket: ticket,
+            replies: messages.rows
+        };
+    } catch (error) {
+        console.error("Fetch Details Error:", error);
+        return { success: false };
+    }
 }
 
 // 3. GET CHAT LIST (Active Conversations)
