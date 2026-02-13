@@ -1,0 +1,33 @@
+{
+  "Header": {
+    "personal": "Personnel",
+    "business": "Entreprise",
+    "help": "Aide",
+    "login": "Connexion",
+    "openMenu": "Ouvrir le menu"
+  },
+  "Footer": {
+    "features": "Fonctionnalités",
+    "company": "Entreprise",
+    "legal": "Mentions légales",
+    "usdWallet": "Portefeuille USD",
+    "eurWallet": "Portefeuille EUR",
+    "virtualCards": "Cartes Virtuelles",
+    "internationalFx": "Change International",
+    "aboutUs": "À propos",
+    "compliance": "Conformité",
+    "careers": "Carrières",
+    "privacyPolicy": "Politique de Confidentialité",
+    "termsOfService": "Conditions d'utilisation",
+    "disclaimer": "PaySense est une entreprise de technologie financière et non une banque. Les services bancaires sont fournis par nos banques partenaires agréées. Les dépôts en USD sont assurés par la FDIC jusqu'à 250 000 $ via nos banques partenaires."
+  },
+  "Hero": {
+    "title": "Envoyez, dépensez et gérez votre argent dans le monde entier",
+    "subtitleHighlight": "en USD et EUR.",
+    "description": "Paiements internationaux transparents, cartes liées aux devises et prêts conformes. Aucun frais de change caché. Aucune surprise.",
+    "getStarted": "Commencer",
+    "logIn": "Connexion",
+    "regulated": "Réglementé et conforme",
+    "realtimeFx": "Taux de change en temps réel"
+  }
+}

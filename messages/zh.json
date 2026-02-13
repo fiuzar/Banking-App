@@ -1,0 +1,34 @@
+{
+  "Header": {
+    "personal": "个人",
+    "business": "企业",
+    "help": "帮助",
+    "login": "登录",
+    "openMenu": "打开菜单"
+  },
+  "Footer": {
+    "features": "功能",
+    "company": "公司",
+    "legal": "法律",
+    "usdWallet": "美元钱包",
+    "eurWallet": "欧元钱包",
+    "virtualCards": "虚拟卡",
+    "internationalFx": "国际外汇",
+    "aboutUs": "关于我们",
+    "compliance": "合规",
+    "careers": "招聘",
+    "privacyPolicy": "隐私政策",
+    "termsOfService": "服务条款",
+    "disclaimer": "PaySense 是一家金融科技公司，而非银行。银行服务由我们持牌合作银行提供。美元存款通过我们的合作银行享有 FDIC 最高 250,000 美元的保障。"
+  },
+  "Hero": {
+    "title": "全球发送、消费和管理资金",
+    "subtitleHighlight": "支持 USD 和 EUR。",
+    "description": "透明的国际支付、绑定货币的卡片以及合规贷款。无隐藏汇率费用。无意外费用。",
+    "getStarted": "立即开始",
+    "logIn": "登录",
+    "regulated": "受监管且合规",
+    "realtimeFx": "实时汇率"
+  },
+
+}
