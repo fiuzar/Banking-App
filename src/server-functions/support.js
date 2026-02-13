@@ -99,36 +99,34 @@ export async function createTicket(formData) {
     const description = formData.get("description");
     const priority = formData.get("priority") || 'MEDIUM';
 
-    // Generate unique IDs (or use UUID/CUID)
     const ticketId = `tkt_${Math.random().toString(36).substr(2, 9)}`;
     const conversationId = `conv_${Math.random().toString(36).substr(2, 9)}`;
 
     try {
-        // 1. Insert the Ticket
+        // 1. Insert the Ticket (Added 'type' column)
         await query(
-            `INSERT INTO paysense_tickets (id, user_id, subject, description, priority, status)
-             VALUES ($1, $2, $3, $4, $5, 'OPEN')`,
+            `INSERT INTO paysense_tickets (id, user_id, subject, description, priority, status, type)
+             VALUES ($1, $2, $3, $4, $5, 'OPEN', 'TICKET')`,
             [ticketId, userId, subject, description, priority]
         );
 
-        // 2. Insert the initial Conversation linked to that Ticket
+        // 2. Insert the Conversation
         await query(
             `INSERT INTO paysense_conversations (id, ticket_id, is_active)
              VALUES ($1, $2, TRUE)`,
             [conversationId, ticketId]
         );
 
-        // 3. Optional: Add the user's description as the FIRST message in the chat
+        // 3. Insert the first message
+        // IMPORTANT: Ensure userId is cast to text if it's an integer in the DB
         await query(
             `INSERT INTO paysense_messages (conversation_id, sender_id, sender_role, message_text)
-             VALUES ($1, $2, 'USER', $3)`,
+             VALUES ($1, $2::text, 'USER', $3)`,
             [conversationId, userId, description]
         );
 
         revalidatePath('/app/support/tickets');
-        revalidatePath('/app/support/chats');
-
-        return { success: true, conversationId };
+        return { success: true, conversationId, ticketId };
     } catch (error) {
         console.error("Failed to create ticket:", error);
         return { success: false, error: error.message };
