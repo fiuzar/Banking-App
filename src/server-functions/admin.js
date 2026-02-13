@@ -133,26 +133,25 @@ export async function getAllActiveTickets() {
     if (session?.user?.role !== "admin") return { success: false };
 
     try {
-        const { rows } = await query(`
-            SELECT 
-                t.id, t.subject, t.priority, t.status, t.created_at as ticket_created,
-                c.id as conversation_id,
-                u.first_name, u.last_name,
-                -- 1. Get the text of the latest message
-                (SELECT message_text FROM paysense_messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_msg_text,
-                -- 2. Get the type of the last sender (USER or ADMIN)
-                (SELECT sender_role FROM paysense_messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_sender_role,
-                -- 3. Determine 'Last Activity' for sorting (Message time or Ticket time)
-                COALESCE(
-                    (SELECT created_at FROM paysense_messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1),
-                    t.created_at
-                ) as last_activity
-            FROM paysense_tickets t
-            LEFT JOIN paysense_conversations c ON t.id = c.ticket_id
-            LEFT JOIN paysense_users u ON t.user_id = u.id
-            WHERE t.status != 'RESOLVED'
-            ORDER BY last_activity DESC
-        `, []);
+        // ... inside getAllActiveTickets ...
+const { rows } = await query(`
+    SELECT 
+        t.id, t.subject, t.priority, t.status, t.created_at as ticket_created,
+        c.id as conversation_id,
+        u.first_name, u.last_name,
+        (SELECT message_text FROM paysense_messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_msg_text,
+        (SELECT sender_role FROM paysense_messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_sender_role,
+        COALESCE(
+            (SELECT created_at FROM paysense_messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1),
+            t.created_at
+        ) as last_activity
+    FROM paysense_tickets t
+    LEFT JOIN paysense_conversations c ON t.id = c.ticket_id
+    -- FIX: Cast user_id to text to match VARCHAR
+    LEFT JOIN paysense_users u ON t.user_id::text = u.id::text 
+    WHERE t.status != 'RESOLVED'
+    ORDER BY last_activity DESC
+`, []);
 
         return { success: true, tickets: rows };
     } catch (e) {
@@ -187,5 +186,93 @@ export async function getAdminDashboardStats() {
         };
     } catch (e) {
         return { success: false };
+    }
+}
+
+/**
+ * FETCH MESSAGES FOR A CONVERSATION
+ */
+export async function getChatMessages(conversationId) {
+    const session = await auth();
+    if (session?.user?.role !== "admin") return { success: false };
+
+    try {
+        const { rows } = await query(
+            `SELECT * FROM paysense_messages 
+             WHERE conversation_id = $1 
+             ORDER BY created_at ASC`, 
+            [conversationId]
+        );
+        return { success: true, messages: rows };
+    } catch (e) {
+        return { success: false };
+    }
+}
+
+/**
+ * FETCH TICKET & USER DETAILS
+ */
+export async function getTicketDetails(conversationId) {
+    const session = await auth();
+    if (session?.user?.role !== "admin") return { success: false };
+
+    try {
+        const { rows } = await query(`
+            SELECT 
+                t.*, 
+                u.first_name, u.last_name, u.email,
+                t.created_at as ticket_created
+            FROM paysense_tickets t
+            JOIN paysense_conversations c ON t.id = c.ticket_id
+            JOIN paysense_users u ON t.user_id = u.id
+            WHERE c.id = $1
+        `, [conversationId]);
+        
+        return { success: true, ticket: rows[0] };
+    } catch (e) {
+        return { success: false };
+    }
+}
+
+export async function adminSendMessage(conversationId, messageText, shouldResolve = false) {
+    const session = await auth();
+    
+    // 1. Security check: Must be an admin
+    if (session?.user?.role !== "admin") {
+        return { success: false, message: "Unauthorized" };
+    }
+
+    const adminId = session.user.id;
+
+    try {
+        // 2. Insert the message into the bubbles table
+        // We cast conversationId to text to prevent the 'character varying = integer' error
+        await query(
+            `INSERT INTO paysense_messages 
+             (conversation_id, sender_id, sender_role, message_text) 
+             VALUES ($1::text, $2::text, 'ADMIN', $3)`,
+            [conversationId, adminId, messageText]
+        );
+
+        // 3. Update the ticket status if the admin clicked "Mark Resolved"
+        if (shouldResolve) {
+            await query(
+                `UPDATE paysense_tickets 
+                 SET status = 'RESOLVED', updated_at = CURRENT_TIMESTAMP
+                 WHERE id = (
+                    SELECT ticket_id FROM paysense_conversations WHERE id = $1::text
+                 )`,
+                [conversationId]
+            );
+        }
+
+        // 4. Refresh the cache so the admin and user see the new message immediately
+        revalidatePath(`/admin/support/chats/${conversationId}`);
+        revalidatePath(`/app/support/chats/${conversationId}`);
+        
+        return { success: true };
+    } catch (e) {
+        console.error("Admin Send Error:", e);
+        return { success: false, message: "Failed to send message." };
     }
 }
