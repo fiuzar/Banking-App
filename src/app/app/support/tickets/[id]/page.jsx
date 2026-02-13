@@ -5,6 +5,7 @@ import { ArrowLeft, Clock, CheckCircle2, MessageSquare, ShieldCheck } from "luci
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import {getTicketDetails} from "@/server-functions/support"
 
 export default function TicketDetailPage() {
     const { id } = useParams();
@@ -15,10 +16,9 @@ export default function TicketDetailPage() {
     useEffect(() => {
         async function fetchTicketDetails() {
             try {
-                const res = await fetch(`/api/support/tickets/${id}`);
-                const data = await res.json();
-                setTicket(data.ticket);
-                setReplies(data.replies || []);
+                const res = await getTicketDetails(id);
+                setTicket(res.ticket);
+                setReplies(res.replies || []);
             } catch (err) {
                 console.error("Error loading ticket:", err);
             } finally {

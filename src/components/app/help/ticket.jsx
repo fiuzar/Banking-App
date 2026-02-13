@@ -34,7 +34,7 @@ export function CreateTicketModal({ isOpen, onClose }) {
 
             if (result.success) {
                 onClose();
-                router.push(`/app/support/chats/${result.conversationId}`);
+                router.push(`/app/support/tickets/${result.conversationId}`);
             } else {
                 setError("We couldn't create your ticket. Please check your connection and try again.");
             }

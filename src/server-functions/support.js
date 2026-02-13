@@ -14,8 +14,8 @@ async function getUserId() {
 export async function getTicketList() {
     const userId = await getUserId();
     const result = await query(
-        `SELECT * FROM paysense_tickets WHERE user_id = $1 ORDER BY created_at DESC`,
-        [userId]
+        `SELECT * FROM paysense_tickets WHERE user_id = $1 AND type= $2 ORDER BY created_at DESC`,
+        [userId, 'TICKET']
     );
     return result.rows;
 }
@@ -43,12 +43,11 @@ export async function getTicketDetails(ticketId) {
 export async function getChatList() {
     const userId = await getUserId();
     const result = await query(
-        `SELECT c.*, t.subject, 
-        (SELECT message_text FROM paysense_messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_msg
-        FROM paysense_conversations c
-        JOIN paysense_tickets t ON c.ticket_id = t.id
-        WHERE t.user_id = $1
-        ORDER BY c.created_at DESC`,
+        `SELECT c.*, t.subject 
+         FROM paysense_conversations c
+         JOIN paysense_tickets t ON c.ticket_id = t.id
+         WHERE t.user_id = $1  AND t.type = 'CHAT' -- Only get live chat sessions
+         ORDER BY c.created_at DESC`,
         [userId]
     );
     return result.rows;
@@ -133,5 +132,39 @@ export async function createTicket(formData) {
     } catch (error) {
         console.error("Failed to create ticket:", error);
         return { success: false, error: error.message };
+    }
+}
+
+export async function createNewChat(subject = "Live Support") {
+    const session = await auth()
+    const userId = session?.user?.id
+
+    if(!userId) return {success: false}
+
+    // Generate Unique IDs
+    const ticketId = `tkt_${Math.random().toString(36).substr(2, 9)}`;
+    const conversationId = `conv_${Math.random().toString(36).substr(2, 9)}`;
+
+    try {
+        // We still create a ticket in the background to keep the DB relationships intact
+        await query(
+            `INSERT INTO paysense_tickets (id, user_id, subject, status, priority, type)
+             VALUES ($1, $2, $3, 'OPEN', 'MEDIUM')`,
+            [ticketId, userId, subject, 'CHAT']
+        );
+
+        // Create the Conversation
+        await query(
+            `INSERT INTO paysense_conversations (id, ticket_id, is_active, type)
+             VALUES ($1, $2, TRUE)`,
+            [conversationId, ticketId, 'CHAT']
+        );
+
+        revalidatePath('/app/support/chats');
+        
+        return { success: true, conversationId };
+    } catch (error) {
+        console.error("New Chat Error:", error);
+        return { success: false, error: "Could not start a new session." };
     }
 }

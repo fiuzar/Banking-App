@@ -5,6 +5,7 @@ import { ArrowLeft, Send, ShieldCheck, MoreVertical } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import {getChatDetails, sendMessage} from "@/server-functions/support"
 
 export default function ChatDetailPage() {
     const { id } = useParams();
@@ -23,10 +24,9 @@ export default function ChatDetailPage() {
     // 2. Initial Fetch of Conversation & Messages
     useEffect(() => {
         async function fetchChat() {
-            const res = await fetch(`/api/support/conversations/${id}`);
-            const data = await res.json();
-            setMessages(data.messages || []);
-            setChatInfo(data.info);
+            const res = await getChatDetails(id);
+            setMessages(res.messages || []);
+            setChatInfo(res.info);
         }
         fetchChat();
     }, [id]);
@@ -45,11 +45,7 @@ export default function ChatDetailPage() {
         setMessages([...messages, tempMsg]);
         setNewMessage("");
 
-        // Send to PostgreSQL
-        await fetch(`/api/support/messages/send`, {
-            method: 'POST',
-            body: JSON.stringify({ conversation_id: id, text: newMessage })
-        });
+        await sendMessage(id, text)
     };
 
     return (
