@@ -156,27 +156,25 @@ export async function createNewChat(subject = "Live Support") {
 
     if(!userId) return {success: false}
 
-    // Generate Unique IDs
     const ticketId = `tkt_${Math.random().toString(36).substr(2, 9)}`;
     const conversationId = `conv_${Math.random().toString(36).substr(2, 9)}`;
 
     try {
-        // We still create a ticket in the background to keep the DB relationships intact
+        // FIX: Match placeholders ($1-$6) to the number of arguments
         await query(
             `INSERT INTO paysense_tickets (id, user_id, subject, status, priority, type)
-             VALUES ($1, $2, $3, 'OPEN', 'MEDIUM')`,
-            [ticketId, userId, subject, 'CHAT']
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [ticketId, userId, subject, 'OPEN', 'MEDIUM', 'CHAT']
         );
 
-        // Create the Conversation
+        // FIX: Ensure 'CHAT' type is passed here too if your DB uses it
         await query(
             `INSERT INTO paysense_conversations (id, ticket_id, is_active, type)
-             VALUES ($1, $2, TRUE)`,
+             VALUES ($1, $2, TRUE, $3)`,
             [conversationId, ticketId, 'CHAT']
         );
 
         revalidatePath('/app/support/chats');
-        
         return { success: true, conversationId };
     } catch (error) {
         console.error("New Chat Error:", error);

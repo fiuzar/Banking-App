@@ -15,22 +15,23 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { HelpSearch, PopularTopics } from "@/components/app/help/help-topics"
 import { CreateTicketModal } from "@/components/app/help/ticket"
+import { getAgentAvailability } from "@/server-functions/support"
 
 export default function SupportPage() {
-    const router = useRouter();
+   const router = useRouter();
     const [isOnline, setIsOnline] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
 
-    // 1. Check if any admin is online from your new Postgres table
     useEffect(() => {
         async function checkAgentStatus() {
             try {
-                const res = await fetch('/api/support/agent-status');
-                const data = await res.json();
-                setIsOnline(data.isOnline);
+                // FIX: Use server function directly for better reliability
+                const online = await getAgentAvailability();
+                setIsOnline(online);
             } catch (err) {
-                console.error("Failed to check agent status");
+                console.error("Status check failed:", err);
+                setIsOnline(false);
             } finally {
                 setIsLoading(false);
             }
@@ -40,10 +41,8 @@ export default function SupportPage() {
 
     const handleChatAction = () => {
         if (isOnline) {
-            // Take them to their native chat list
             router.push("/app/support/chats");
         } else {
-            // If no one is online, go straight to ticket creation
             setIsTicketModalOpen(true);
         }
     };
