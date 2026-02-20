@@ -17,14 +17,14 @@ export async function proxy(request) {
     pathname.startsWith("/static") ||
     pathname.startsWith("/img") ||
     pathname.startsWith("/images") ||
-    pathname.includes(".") || // catches .png .jpg .svg .css .js
+    pathname.includes(".") || 
     pathname === "/favicon.ico"
   ) {
     return NextResponse.next();
   }
 
   /* ---------------------------------------------
-   2️⃣  LOCALE HANDLING
+   2️⃣  LOCALE HANDLING (Cookie -> Geo -> Browser)
   --------------------------------------------- */
 
   const pathnameHasLocale = locales.some(
@@ -33,59 +33,77 @@ export async function proxy(request) {
   );
 
   if (!pathnameHasLocale) {
-    // Try to detect previous locale from referer
-    const referer = request.headers.get("referer");
-    let detectedLocale = defaultLocale;
+    // A. Check for existing cookie (Returning users/Manually set)
+    let detectedLocale = request.cookies.get("NEXT_LOCALE")?.value;
 
-    if (referer) {
-      try {
-        const refererUrl = new URL(referer);
-        const refererPath = refererUrl.pathname;
+    // B. If no cookie, check Geolocation (New users)
+    if (!detectedLocale) {
+      // Vercel/Cloudflare headers for country detection
+      const country = request.headers.get("x-vercel-ip-country") || 
+                      request.headers.get("cf-ipcountry") || "";
+      
+      const geoMap = {
+        'FR': 'fr', 'DE': 'de', 'ES': 'es', 'MX': 'es', 'AR': 'es',
+        'BR': 'pt', 'PT': 'pt', 'CN': 'zh', 'IN': 'hi', 'SA': 'ar', 'AE': 'ar'
+      };
+      
+      detectedLocale = geoMap[country];
+    }
 
-        const refererLocale = locales.find(
-          (locale) =>
-            refererPath.startsWith(`/${locale}/`) ||
-            refererPath === `/${locale}`
-        );
-
-        if (refererLocale) {
-          detectedLocale = refererLocale;
-        }
-      } catch (err) {
-        // ignore parsing errors
+    // C. If no Geo match, check Browser Language
+    if (!detectedLocale) {
+      const acceptLang = request.headers.get("accept-language");
+      const browserLang = acceptLang?.split(",")[0].split("-")[0];
+      if (locales.includes(browserLang)) {
+        detectedLocale = browserLang;
       }
     }
 
-    return NextResponse.redirect(
-      new URL(`/${detectedLocale}${pathname}`, request.url)
+    // D. Fallback to Referer or Default
+    if (!detectedLocale) {
+      const referer = request.headers.get("referer");
+      if (referer) {
+        try {
+          const refererUrl = new URL(referer);
+          const refererLocale = locales.find(l => refererUrl.pathname.startsWith(`/${l}`));
+          detectedLocale = refererLocale;
+        } catch (e) {}
+      }
+    }
+
+    const finalLocale = detectedLocale || defaultLocale;
+
+    // Execute Redirect
+    const response = NextResponse.redirect(
+      new URL(`/${finalLocale}${pathname}`, request.url)
     );
+
+    // Persist the locale in a cookie so we don't guess again
+    response.cookies.set("NEXT_LOCALE", finalLocale, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30, // 30 Days
+    });
+
+    return response;
   }
 
-  // Extract locale from URL
+  // Extract locale from URL for use in subsequent routes
   const locale = pathname.split("/")[1];
-
-  // Remove locale for route checks
-  const pathWithoutLocale =
-    pathname.replace(`/${locale}`, "") || "/";
+  const pathWithoutLocale = pathname.replace(`/${locale}`, "") || "/";
 
   /* ---------------------------------------------
    3️⃣  DEFINE ROUTE GROUPS
   --------------------------------------------- */
-
   const isAppRoute = pathWithoutLocale.startsWith("/app");
   const isAdminRoute = pathWithoutLocale.startsWith("/admin");
-  const isAuthRoute = ["/login", "/register", "/reset-password"].includes(
-    pathWithoutLocale
-  );
-  const isTerminatedPage =
-    pathWithoutLocale === "/app/account-terminated";
+  const isAuthRoute = ["/login", "/register", "/reset-password"].includes(pathWithoutLocale);
+  const isTerminatedPage = pathWithoutLocale === "/app/account-terminated";
 
   /* ---------------------------------------------
    4️⃣  LOGGED-IN GLOBAL GUARDS
   --------------------------------------------- */
-
   if (session) {
-    // Account terminated
+    // 1. Account terminated check
     if (session.user.terminate) {
       if (!isTerminatedPage) {
         return NextResponse.redirect(
@@ -96,12 +114,10 @@ export async function proxy(request) {
     }
 
     if (isTerminatedPage && !session.user.terminate) {
-      return NextResponse.redirect(
-        new URL(`/${locale}/app`, request.url)
-      );
+      return NextResponse.redirect(new URL(`/${locale}/app`, request.url));
     }
 
-    // Not verified
+    // 2. Verification/Signup completion check
     if (
       !session.user.verified &&
       isAppRoute &&
@@ -115,11 +131,9 @@ export async function proxy(request) {
       );
     }
 
-    // Logged-in users shouldn't see auth pages
+    // 3. Auth page bypass (don't show login to logged in users)
     if (isAuthRoute) {
-      const destination =
-        session.user.role === "admin" ? "/admin" : "/app";
-
+      const destination = session.user.role === "admin" ? "/admin" : "/app";
       return NextResponse.redirect(
         new URL(`/${locale}${destination}`, request.url)
       );
@@ -127,9 +141,8 @@ export async function proxy(request) {
   }
 
   /* ---------------------------------------------
-   5️⃣  ROUTE PROTECTION
+   5️⃣  ROUTE PROTECTION (Unauthorized access)
   --------------------------------------------- */
-
   if (isAppRoute || isAdminRoute) {
     if (!session) {
       return NextResponse.redirect(
@@ -147,12 +160,6 @@ export async function proxy(request) {
   return NextResponse.next();
 }
 
-/* ---------------------------------------------
-   6️⃣  MATCHER
---------------------------------------------- */
-
 export const config = {
-  matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

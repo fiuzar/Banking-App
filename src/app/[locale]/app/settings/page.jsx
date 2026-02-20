@@ -13,6 +13,7 @@ import { UserProfileSettings } from "@/components/app/user_setings"
 import { signOut } from "next-auth/react"
 import { create_otp, finalizePinSetup, toggle2FA } from "@/server-functions/authentication"
 import { useLanguage } from "@/messages/LanguageProvider"
+import {LanguageSettingsCard} from "@/components/app/language-selector"
 
 export default function AccountManagement() {
     const { t } = useLanguage()
@@ -173,6 +174,8 @@ export default function AccountManagement() {
                         )}
                     </div>
                 )}
+
+                <LanguageSettingsCard user={user} />
 
                 {/* SECURITY SETTINGS CARD */}
                 <div className="space-y-3">

@@ -329,3 +329,16 @@ export async function updateProfile(formData) {
         return { success: false, message: 'Update failed' };
     }
 }
+
+export async function updateUserLocale(userId, newLocale) {
+    try {
+        await query(
+            `UPDATE paysense_users SET locale = $1 WHERE id = $2`,
+            [newLocale, userId]
+        );
+        revalidatePath('/', 'layout');
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
