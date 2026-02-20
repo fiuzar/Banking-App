@@ -1250,6 +1250,11 @@
       "locationDetecting": "Detecting location...",
       "kycVerified": "Verified Member"
     },
+    "language": {
+    "title": "PREFERENCES",
+    "label": "App Language",
+    "desc": "Select your preferred language"
+  },
     "contactInfo": {
       "title": "Contact Information",
       "editBtn": "Edit",

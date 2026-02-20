@@ -1250,6 +1250,11 @@
       "locationDetecting": "正在检测位置...",
       "kycVerified": "已验证会员"
     },
+    "language": {
+    "title": "偏好设置",
+    "label": "应用语言",
+    "desc": "选择您首选的语言"
+  },
     "contactInfo": {
       "title": "联系信息",
       "editBtn": "编辑",

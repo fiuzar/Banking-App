@@ -1250,6 +1250,11 @@
       "locationDetecting": "Détection de l'emplacement...",
       "kycVerified": "Membre Vérifié"
     },
+    "language": {
+    "title": "PRÉFÉRENCES",
+    "label": "Langue de l'application",
+    "desc": "Choisissez votre langue préférée"
+  },
     "contactInfo": {
       "title": "Informations de Contact",
       "editBtn": "Modifier",

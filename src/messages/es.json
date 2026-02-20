@@ -1250,6 +1250,11 @@
       "locationDetecting": "Detectando ubicación...",
       "kycVerified": "Miembro Verificado"
     },
+    "language": {
+    "title": "PREFERENCIAS",
+    "label": "Idioma de la app",
+    "desc": "Selecciona tu idioma preferido"
+  },
     "contactInfo": {
       "title": "Información de Contacto",
       "editBtn": "Editar",
