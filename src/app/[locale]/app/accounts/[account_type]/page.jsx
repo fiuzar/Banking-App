@@ -211,7 +211,7 @@ export default function AccountDetails() {
   )
 }
 
-function TransactionRow({ tx }: any) {
+function TransactionRow({ tx }) {
   const { t } = useLanguage()
   const isCredit = tx.direction === "credit"
 
