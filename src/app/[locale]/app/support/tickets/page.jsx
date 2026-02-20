@@ -29,7 +29,7 @@ export default function TicketsListPage() {
         fetchTickets()
     }, [])
 
-    const getStatusStyles = (status: string) => {
+    const getStatusStyles = (status) => {
         const s = status?.toUpperCase() || ''
         switch (s) {
             case 'OPEN': return 'bg-blue-50 text-blue-600 border-blue-100'
