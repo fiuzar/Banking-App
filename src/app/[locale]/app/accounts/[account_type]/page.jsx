@@ -27,7 +27,7 @@ export default function AccountDetails() {
   const { account_type } = useParams()
   const { accountDetails } = useContext(AccountDetailsContext)
 
-  const [transactions_history, setTransactionHistory] = useState<any[]>([])
+  const [transactions_history, setTransactionHistory] = useState([])
   const [hasMore, setHasMore] = useState(false)
   const [offset, setOffset] = useState(0)
   const [loading, setLoading] = useState(false)
