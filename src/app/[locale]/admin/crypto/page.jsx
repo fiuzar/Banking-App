@@ -167,7 +167,7 @@ export default async function AdminCryptoPage() {
 /** * UI SUB-COMPONENTS
  */
 
-function AssetIcon({ asset }: { asset: string }) {
+function AssetIcon({ asset }) {
     const firstLetter = asset?.charAt(0) || 'C';
     return (
         <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center font-black text-lg shadow-inner">
@@ -176,7 +176,7 @@ function AssetIcon({ asset }: { asset: string }) {
     );
 }
 
-function TradeBadge({ type }: { type: string }) {
+function TradeBadge({ type }) {
     const isBuy = type === 'crypto_buy';
     return (
         <div className={`text-[10px] font-black flex items-center gap-1 ${isBuy ? 'text-emerald-600' : 'text-rose-600'}`}>

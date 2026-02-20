@@ -114,7 +114,7 @@ export default async function AdminLogsPage() {
     );
 }
 
-function getActionStyle(type: string) {
+function getActionStyle(type) {
     const t = type.toUpperCase();
     if (t.includes('APPROVE') || t.includes('SUCCESS')) return "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none";
     if (t.includes('KYC') || t.includes('USER')) return "bg-indigo-100 text-indigo-700 hover:bg-indigo-100 border-none";
