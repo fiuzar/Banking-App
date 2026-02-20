@@ -1,0 +1,1756 @@
+{
+  "Header": {
+    "personal": "Privat",
+    "business": "Geschäftlich",
+    "help": "Hilfe",
+    "login": "Anmelden",
+    "openMenu": "Menü öffnen"
+  },
+  "Footer": {
+    "features": "Funktionen",
+    "company": "Unternehmen",
+    "legal": "Rechtliches",
+    "usdWallet": "USD-Wallet",
+    "eurWallet": "EUR-Wallet",
+    "virtualCards": "Virtuelle Karten",
+    "internationalFx": "Internationale Devisen",
+    "aboutUs": "Über uns",
+    "compliance": "Compliance",
+    "careers": "Karriere",
+    "privacyPolicy": "Datenschutzerklärung",
+    "termsOfService": "Nutzungsbedingungen",
+    "disclaimer": "PaySense ist ein Finanztechnologieunternehmen, keine Bank. Bankdienstleistungen werden von unseren lizenzierten Partnerbanken bereitgestellt. USD-Einlagen sind über unsere Partnerbanken FDIC-versichert bis zu 250.000 $."
+  },
+  "Hero": {
+    "title": "Geld global senden, ausgeben und verwalten",
+    "subtitleHighlight": "in USD und EUR.",
+    "description": "Transparente internationale Zahlungen, währungsgebundene Karten und konforme Kredite. Keine versteckten Wechselkurse. Keine Überraschungen.",
+    "getStarted": "Jetzt starten",
+    "logIn": "Anmelden",
+    "regulated": "Reguliert und konform",
+    "realtimeFx": "Echtzeit-Devisen"
+  },
+  "HowItWorks": {
+    "title": "In wenigen Minuten starten",
+    "step1": "Konto erstellen",
+    "step2": "Identität verifizieren",
+    "step3": "USD/EUR-Guthaben aufladen",
+    "step4": "Senden, ausgeben oder umtauschen"
+  },
+  "Login": {
+    "verifyIdentity": "Identität verifizieren",
+    "welcomeBack": "Willkommen zurück",
+    "otpInstruction": "Geben Sie den 6-stelligen Code ein, der an Ihre E-Mail gesendet wurde",
+    "emailAddress": "E-Mail-Adresse",
+    "emailPlaceholder": "name@beispiel.de",
+    "password": "Passwort",
+    "forgotPassword": "Passwort vergessen?",
+    "signIn": "Anmelden",
+    "orContinueWith": "Oder fortfahren mit",
+    "googleAccount": "Google-Konto",
+    "verificationCode": "Verifizierungscode",
+    "otpPlaceholder": "000000",
+    "verifyAndLogin": "Verifizieren und anmelden",
+    "didntGetCode": "Keinen Code erhalten?",
+    "resend": "Erneut senden",
+    "noAccount": "Noch kein Konto?",
+    "joinPaysense": "Bei Paysense registrieren",
+    "passwordResetSuccess": "Passwort erfolgreich zurückgesetzt. Bitte melden Sie sich an.",
+    "sessionFailed": "Sitzungserstellung fehlgeschlagen.",
+    "invalidCode": "Ungültiger Code"
+  },
+  "PasswordStrength": {
+    "strength": "Stärke",
+    "weak": "Schwach",
+    "fair": "Akzeptabel",
+    "good": "Gut",
+    "strong": "Stark"
+  },
+  "RegisterForm": {
+    "createAccount": "Konto erstellen",
+    "joinPaysense": "Registrieren Sie sich bei Paysense für Banking-Dienste",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "emailAddress": "E-Mail-Adresse",
+    "password": "Passwort",
+    "confirmPassword": "Passwort bestätigen",
+    "createAccountButton": "Konto erstellen",
+    "orSignUpWith": "Oder registrieren mit",
+    "google": "Google",
+    "alreadyHaveAccount": "Bereits ein Konto?",
+    "signIn": "Anmelden",
+    "termsAgreement": "Mit der Kontoerstellung stimmen Sie unseren",
+    "termsOfService": "Nutzungsbedingungen",
+    "privacyPolicy": "Datenschutzerklärung",
+    "placeholderFirstName": "Max",
+    "placeholderLastName": "Mustermann",
+    "placeholderEmail": "name@beispiel.de"
+  },
+  "ValuePillars": {
+    "multiCurrencyTitle": "Multi-Währungs-Wallets",
+    "multiCurrencyDesc": "Halten und verwalten Sie USD- und EUR-Wallets separat. Klare Salden. Keine Verwirrung.",
+    "transparentFxTitle": "Transparente Devisen",
+    "transparentFxDesc": "Sehen Sie Wechselkurse, Gebühren und Endbeträge, bevor Sie umtauschen oder senden.",
+    "currencyCardsTitle": "Währungsgebundene Karten",
+    "currencyCardsDesc": "Geben Sie weltweit mit USD- oder EUR-Karten aus und kennen Sie den exakten angewandten Wechselkurs."
+  },
+  "VerifyEmailForm": {
+    "title": "E-Mail verifizieren",
+    "description": "Geben Sie den 6-stelligen Code ein, der an {email} gesendet wurde",
+    "otpLabel": "Einmalpasswort",
+    "resend": "OTP erneut senden",
+    "verifyButton": "Konto verifizieren",
+    "successTitle": "Erfolg",
+    "errorTitle": "Fehler",
+    "successMessage": "Erfolgreich verifiziert!",
+    "errorMessage": "Fehler"
+  },
+  "UserProfileSettings": {
+    "title": "Profil bearbeiten",
+    "firstNameLabel": "Vorname",
+    "lastNameLabel": "Nachname",
+    "phoneLabel": "Telefonnummer",
+    "cancelButton": "Abbrechen",
+    "saveButton": "Änderungen speichern"
+  },
+  "TransferStates": {
+    "successTitle": "Überweisung abgeschlossen",
+    "successDescription": "Guthaben wurde sofort zwischen Ihren Konten verschoben.",
+    "successButton": "Zurück zum Dashboard",
+    "failureTitle": "Überweisung fehlgeschlagen",
+    "failureDescription": "Bei der Verarbeitung Ihrer Überweisung ist ein Problem aufgetreten. Bitte versuchen Sie es später erneut.",
+    "failureButton": "Erneut versuchen",
+    "accountLabel": "Konto",
+    "accountNamePlaceholder": "Name",
+    "accountBalancePlaceholder": "Saldo"
+  },
+  "NavBar": {
+    "home": "Startseite",
+    "notifications": "Benachrichtigungen",
+    "alerts": "Warnungen",
+    "support": "Support",
+    "settings": "Einstellungen",
+    "logout": "Abmelden",
+    "exit": "Beenden"
+  },
+  "Help": {
+    "search_placeholder": "Hilfethemen durchsuchen...",
+    "no_results": "Keine Ergebnisse gefunden",
+    "popular_topics": "Beliebte Themen",
+    "search_results": "Suchergebnisse ({count})",
+    "clear": "Löschen",
+    "try_searching": "Versuchen Sie die Suche nach \"Karte\" oder \"Limits\""
+  },
+  "CreateTicketModal": {
+    "title": "Ticket erstellen",
+    "subject_label": "Betreff",
+    "subject_placeholder": "z.B. Fehlende Einzahlung",
+    "category_label": "Kategorie",
+    "description_label": "Beschreibung",
+    "description_placeholder": "Erzählen Sie uns mehr über das Problem...",
+    "submit": "Ticket einreichen",
+    "processing": "Wird verarbeitet...",
+    "error_create": "Wir konnten Ihr Ticket nicht erstellen. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    "error_system": "Ein Systemfehler ist aufgetreten. Bitte versuchen Sie es später erneut."
+  },
+  "HomePage": {
+    "hero": {
+      "headline": "Ihre intelligente globale Geldbörse",
+      "subtext": "Verwalten Sie USD und EUR nahtlos mit sofortigen Überweisungen und transparenten Gebühren.",
+      "cta": "Jetzt starten"
+    },
+    "valuePillars": {
+      "multi_currency": {
+        "title": "Multi-Währungs-Wallets",
+        "desc": "Halten und verwalten Sie USD- und EUR-Wallets separat. Klare Salden. Keine Verwirrung."
+      },
+      "transparent_fx": {
+        "title": "Transparente Devisen",
+        "desc": "Sehen Sie Wechselkurse, Gebühren und Endbeträge, bevor Sie umtauschen oder senden."
+      },
+      "currency_cards": {
+        "title": "Währungsgebundene Karten",
+        "desc": "Geben Sie weltweit mit USD- oder EUR-Karten aus und kennen Sie den exakten angewandten Wechselkurs."
+      }
+    },
+    "features_showcase": {
+      "headline": "Internationale Zahlungen vereinfacht.",
+      "list": [
+        "Keine stille Währungsumrechnung",
+        "Echtzeit-Überweisungsverfolgung",
+        "Klare Gebühren vor Bestätigung"
+      ],
+      "cta": "Mehr erfahren"
+    },
+    "howItWorks": {
+      "headline": "So funktioniert es",
+      "steps": [
+        "Erstellen Sie Ihr Konto in Minuten",
+        "Laden Sie Ihre Wallets sofort auf",
+        "Senden oder geben Sie Geld weltweit aus"
+      ]
+    },
+    "finalCTA": {
+      "headline": "Eröffnen Sie Ihr globales Konto in Minuten.",
+      "subtext": "Beginnen Sie, USD und EUR intelligent zu verwalten. Keine monatlichen Gebühren.",
+      "cta": "Jetzt starten"
+    }
+  },
+  "LayoutNotFound": {
+    "emoji": "🔍",
+    "headline": "Seite nicht gefunden",
+    "subtext": "Wir konnten die gesuchte Seite nicht finden. Sie wurde möglicherweise verschoben oder existiert nicht.",
+    "cta": "Zurück zur Startseite"
+  },
+  "RootLayout": {
+    "title": "Paysense",
+    "description": "Ihre Nr. 1 Banking- und Finanz-App"
+  },
+  "VerifyEmailPage": {
+    "emoji": "📩",
+    "headline": "E-Mail verifizieren",
+    "description": "Wir haben einen 6-stelligen Code gesendet an",
+    "verify_button": "Verifizieren und fortfahren",
+    "resend_timer": "Code erneut senden in {seconds}s",
+    "resend_button": "Code erneut senden",
+    "alternate_email": "← Andere E-Mail verwenden"
+  },
+  "TermsPage": {
+    "title": "Allgemeine Geschäftsbedingungen",
+    "lastUpdated": "Zuletzt aktualisiert: {date}",
+    "sections": {
+      "intro": {
+        "title": "1. Einführung",
+        "p1": "Dieses Dokument regelt die Nutzung der PaySense-App, der Website und aller zugehörigen Dienste. Durch die Erstellung eines Kontos stimmen Sie ausdrücklich zu, an diese Bedingungen gebunden zu sein.",
+        "p2": "Diese Bedingungen gelten für alle Nutzer weltweit, unabhängig von ihrem Wohnsitzland, vorbehaltlich örtlicher regulatorischer Anforderungen."
+      },
+      "definitions": {
+        "title": "2. Definitionen"
+      },
+      "eligibility": {
+        "title": "3. Berechtigung"
+      },
+      "security": {
+        "title": "4. Kontosicherheit"
+      },
+      "wallets": {
+        "title": "5. Wallets und Währungen",
+        "p1": "PaySense ermöglicht es Nutzern, separate USD- und EUR-Wallets zu führen. Diese Salden sind unterschiedlich und werden nach Währung angezeigt.",
+        "list": [
+          "Wallets führen keine automatischen Umrechnungen durch.",
+          "Umrechnungen erfolgen nur, wenn Sie die Transaktion ausdrücklich genehmigen.",
+          "Salden werden sicher bei unseren regulierten Partnerbanken verwahrt."
+        ]
+      },
+      "fx": {
+        "title": "7. Devisenumrechnung",
+        "p1": "Transparenz ist unser Kernprinzip. Wechselkurse und alle anfallenden Gebühren werden in der App angezeigt, bevor Sie eine Umrechnung bestätigen.",
+        "warning": "Einmal bestätigt, sind Devisenumrechnungen endgültig und können nicht rückgängig gemacht werden.",
+        "p2": "Die App führt keine \"stillen\" oder versteckten Umrechnungen durch. Der Kurs, den Sie sehen, ist der Kurs, den Sie erhalten."
+      },
+      "loans": {
+        "title": "9. Kredite",
+        "p1": "Kredite sind streng währungsspezifisch (USD oder EUR). Um Nutzer vor Marktvolatilität zu schützen, müssen Rückzahlungen in derselben Währung wie der Kreditbetrag erfolgen.",
+        "p2": "Devisenumrechnungen zum Zweck der Kreditrückzahlung sind nicht zulässig, um ein Null-Währungsrisiko für den Kreditnehmer zu gewährleisten."
+      },
+      "compliance": {
+        "title": "11. Compliance und KYC",
+        "p1": "Um Betrug zu verhindern und internationale Geldwäschevorschriften (AML) einzuhalten, müssen sich alle Nutzer einer Identitätsprüfung (KYC) unterziehen.",
+        "p2": "Die Nichtvorlage genauer Unterlagen kann zu Kontobeschränkungen oder -kündigung führen."
+      }
+    },
+    "footer": {
+      "questions": "Fragen zu diesen Bedingungen? Kontaktieren Sie uns unter",
+      "email": "legal@paysense.com"
+    }
+  },
+  "ResetPassword": {
+    "title": "Neues Passwort",
+    "description": "Bitte wählen Sie ein sicheres Passwort, das Sie noch nicht verwendet haben.",
+    "newPasswordLabel": "Neues Passwort",
+    "confirmPasswordLabel": "Passwort bestätigen",
+    "updateButton": "Passwort aktualisieren",
+    "updatingButton": "Passwort wird aktualisiert...",
+    "loading": "Lädt...",
+    "errors": {
+      "invalidToken": "Ungültiger oder fehlender Reset-Token. Bitte fordern Sie einen neuen Link an.",
+      "passwordLength": "Das Passwort muss mindestens 8 Zeichen lang sein",
+      "passwordMismatch": "Passwörter stimmen nicht überein"
+    }
+  },
+  "RegisterPage": {
+    "metadata": {
+      "title": "Konto erstellen | Starten Sie heute Ihr kostenloses Trading-Tagebuch",
+      "description": "Schließen Sie sich Tausenden von Händlern an, die Konsistenz und Disziplin aufbauen. Erstellen Sie ein kostenloses Konto, um Trades zu protokollieren, Risiken zu verwalten und Ihre Trading-Leistung zu verbessern."
+    }
+  },
+  "PrivacyPage": {
+    "badge": "Sicherheit zuerst",
+    "title": "Datenschutzerklärung",
+    "subtitle": "Bei PaySense ist Ihre Privatsphäre eine Priorität. Erfahren Sie, wie wir Ihre persönlichen und finanziellen Daten sammeln, verwenden und schützen.",
+    "sections": {
+      "collect": {
+        "title": "1. Von uns gesammelte Informationen",
+        "personal": {
+          "label": "A. Persönliche Informationen",
+          "desc": "Vollständiger Name, E-Mail-Adresse, Telefonnummer, Geburtsdatum und Wohnsitzland."
+        },
+        "financial": {
+          "label": "B. Finanzinformationen",
+          "desc": "Wallet-Salden, Transaktionshistorie, Devisenumrechnungen und Kreditaufzeichnungen."
+        },
+        "technical": {
+          "label": "C. Technische Daten",
+          "desc": "Geräteinformationen, IP-Adresse und Anmeldeaktivität (Zeit, Ort, Gerätetyp)."
+        }
+      },
+      "use": {
+        "title": "2. Wie wir Ihre Informationen verwenden",
+        "list": [
+          "Um Ihre USD- und EUR-Bankdienstleistungen bereitzustellen und zu verwalten.",
+          "Um Transaktionen und Devisenumrechnungen sicher zu verarbeiten.",
+          "Um internationale Finanzvorschriften und AML-Gesetze einzuhalten.",
+          "Um Betrug und unbefugten Zugriff auf Ihr Konto zu verhindern.",
+          "Um Ihnen wichtige Dienstaktualisierungen und Sicherheitswarnungen zu senden."
+        ]
+      },
+      "sharing": {
+        "title": "3. Datenaustausch",
+        "p1": "Wir teilen Ihre Daten mit regulierten Finanzpartnern, Zahlungsnetzwerken (Visa/Mastercard) und Betrugspräventionsanbietern.",
+        "highlight": "Wir verkaufen Ihre Daten niemals an Werbetreibende."
+      },
+      "security": {
+        "title": "4. Sicherheitsmaßnahmen",
+        "p1": "PaySense verwendet bankübliche Verschlüsselung (AES-256) für ruhende Daten und TLS für Daten während der Übertragung. Wir pflegen strenge Zugangskontrollen und überwachen unsere Systeme rund um die Uhr auf unbefugte Aktivitäten."
+      }
+    },
+    "rights": {
+      "title": "Ihre Rechte",
+      "description": "Gemäß internationalen Datenschutzgesetzen haben Sie das Recht, auf Ihre Daten zuzugreifen, sie zu korrigieren oder ihre Löschung zu beantragen. Finanzunterlagen müssen für eine gesetzlich vorgeschriebene Mindestdauer aufbewahrt werden.",
+      "cta": "Datenschutzbeauftragten kontaktieren"
+    }
+  },
+  "PersonalPage": {
+    "hero": {
+      "badge": "Für Privatpersonen",
+      "headline": "Internationales Banking",
+      "headlineItalic": "für Privatpersonen.",
+      "description": "Eröffnen Sie USD- und EUR-Konten von Nigeria aus in Minuten. Empfangen Sie weltweite Zahlungen, geben Sie überall mit virtuellen Karten aus und bewegen Sie Geld zum echten Wechselkurs.",
+      "cta": "Privatkonto eröffnen"
+    },
+    "features": {
+      "wallets": {
+        "title": "USD- und EUR-Wallets",
+        "description": "Erhalten Sie Ihre eigene dedizierte US-Routing-Nummer und europäische IBAN. Empfangen Sie Geld von Kunden oder Arbeitgebern, als ob Sie dort leben würden.",
+        "usdLabel": "USD-Konto",
+        "eurLabel": "EUR-IBAN"
+      },
+      "cards": {
+        "title": "Virtuelle Karten",
+        "description": "Sofortige USD-Karten für Netflix, Amazon und internationale Werbung. 3D Secure aktiviert.",
+        "cardType": "Virtuelle Debitkarte"
+      },
+      "fx": {
+        "title": "Echte Devisenumrechnung",
+        "description": "Tauschen Sie Währungen zum Mittelkurs ohne versteckte Aufschläge."
+      },
+      "loans": {
+        "title": "Sofortkredite",
+        "description": "Demnächst: Zugang zu Kreditlinien basierend auf Ihrer Historie."
+      },
+      "security": {
+        "title": "Geschützte Gelder",
+        "description": "Ihr Geld wird auf separaten Konten bei Tier-1-Banken verwahrt."
+      }
+    },
+    "howItWorks": {
+      "title": "So funktioniert es",
+      "steps": [
+        {
+          "step": "01",
+          "title": "Registrieren",
+          "desc": "Erstellen Sie Ihr Konto nur mit Ihrer Telefonnummer."
+        },
+        {
+          "step": "02",
+          "title": "Identität verifizieren",
+          "desc": "Schnelle biometrische Verifizierung und BVN-Prüfung für sofortige Genehmigung."
+        },
+        {
+          "step": "03",
+          "title": "Transaktionen starten",
+          "desc": "Laden Sie Ihr Wallet auf und bewegen Sie Geld über Grenzen hinweg."
+        }
+      ]
+    },
+    "compliance": {
+      "title": "Reguliert. Geschützt. Sicher.",
+      "description": "Wir sind eine Technologieplattform, keine Bank. Bankdienstleistungen werden von unseren lizenzierten Infrastrukturpartnern bereitgestellt.",
+      "cta": "Eröffnen Sie Ihr Privatkonto"
+    }
+  },
+  "HelpPage": {
+    "header": {
+      "title": "Hilfe und Support",
+      "searchPlaceholder": "Nach Hilfe suchen (z.B. 'Währungsumrechnung', 'Karten')"
+    },
+    "categories": {
+      "wallets": "Konten und Wallets",
+      "fx": "Devisen und Umrechnung",
+      "transfers": "Überweisungen",
+      "cards": "Karten",
+      "loans": "Kredite",
+      "security": "Sicherheit"
+    },
+    "faq": {
+      "title": "Häufig gestellte Fragen",
+      "items": {
+        "currencies": {
+          "question": "Welche Währungen werden unterstützt?",
+          "answer": "Derzeit unterstützen wir USD und EUR. Jede wird in einem separaten Wallet verwaltet, um volle Transparenz zu gewährleisten und versehentliche Umrechnungen zu vermeiden."
+        },
+        "automatic": {
+          "question": "Sind Umrechnungen automatisch?",
+          "answer": "Nein. Um unser Versprechen von \"Keine stillen Devisen\" einzuhalten, müssen alle Währungsumrechnungen von Ihnen manuell überprüft und bestätigt werden."
+        },
+        "cardLinking": {
+          "question": "Sind Karten an eine bestimmte Währung gebunden?",
+          "answer": "Ja. Jede virtuelle Karte ist speziell an Ihr USD- oder EUR-Wallet gebunden. Dies verhindert unerwartete Wechselkursschwankungen während Transaktionen."
+        },
+        "kyc": {
+          "question": "Warum muss ich meine Identität verifizieren?",
+          "answer": "Die Identitätsprüfung (KYC) ist eine regulatorische Anforderung, die Ihre Gelder schützt und es uns ermöglicht, internationale Bankschienen bereitzustellen."
+        }
+      }
+    },
+    "contact": {
+      "email": {
+        "title": "E-Mail-Support",
+        "responseTime": "Typische Antwortzeit: Innerhalb von 24 Stunden",
+        "value": "support@paysense.com"
+      },
+      "chat": {
+        "title": "Live-Chat",
+        "availability": "Verfügbar Mo-Fr, 9-17 Uhr WAT",
+        "cta": "Gespräch starten"
+      }
+    }
+  },
+  "ForgotPasswordPage": {
+    "title": "Passwort zurücksetzen",
+    "description": "Geben Sie Ihre E-Mail ein und wir senden Ihnen einen Link zur Kontowiederherstellung.",
+    "emailLabel": "E-Mail-Adresse",
+    "emailPlaceholder": "name@beispiel.de",
+    "submitButton": "Reset-Link senden",
+    "sendingButton": "Link wird gesendet...",
+    "backToLogin": "Zurück zur Anmeldung",
+    "successState": {
+      "button": "Zurück zur Anmeldung"
+    }
+  },
+  "CompliancePage": {
+    "hero": {
+      "title": "Compliance und regulatorische Verantwortung",
+      "description": "Wir arbeiten mit einem starken Bekenntnis zu regulatorischer Compliance, finanzieller Sicherheit und verantwortungsvollen Bankpraktiken."
+    },
+    "framework": {
+      "intro": "Wir arbeiten gemäß den geltenden Finanzvorschriften und Industriestandards in den Regionen, in denen unsere Dienste angeboten werden. Dies umfasst die Einhaltung von Anforderungen in Bezug auf:",
+      "items": [
+        "Finanzlizenzen",
+        "Geldwäschebekämpfung (AML)",
+        "Terrorismusfinanzierungsbekämpfung (CTF)",
+        "Datenschutz und Privatsphäre"
+      ]
+    },
+    "verification": {
+      "title": "Identitätsprüfung",
+      "kyc": {
+        "title": "Privatpersonen (KYC)",
+        "description": "Um unsere Dienste zu nutzen, müssen Privatpersonen ihre Identität verifizieren. Dies kann umfassen:",
+        "list": [
+          "Von der Regierung ausgestellter Ausweis",
+          "Adressnachweis",
+          "Biometrische Verifizierung"
+        ]
+      },
+      "kyb": {
+        "title": "Unternehmen (KYB)",
+        "description": "Unternehmen müssen die Verifizierung vor der Aktivierung abschließen, was umfassen kann:",
+        "list": [
+          "Unternehmensregistrierungsdokumente (CAC)",
+          "Eigentums- und Kontrollinformationen",
+          "Verifizierung von Direktoren oder Aktionären"
+        ]
+      }
+    },
+    "monitoring": {
+      "title": "AML und Überwachung",
+      "description": "Wir unterhalten Systeme zur Erkennung, Verhinderung und Meldung verdächtiger Aktivitäten, einschließlich kontinuierlicher Transaktionsüberwachung und risikobasierter Prüfungen."
+    },
+    "protection": {
+      "data": {
+        "title": "Datenschutz",
+        "description": "Wir schützen persönliche und geschäftliche Daten mit branchenüblichen Sicherheitsmaßnahmen, einschließlich Verschlüsselung und Zugangskontrollen. Wir verarbeiten Daten gemäß den geltenden Datenschutzbestimmungen."
+      },
+      "risk": {
+        "title": "Risikohinweis",
+        "description": "Finanzdienstleistungen beinhalten Risiken, einschließlich Wechselkursschwankungen und Transaktionsverzögerungen. Nutzer sind verantwortlich für die Überprüfung der Transaktionsdetails vor der Bestätigung."
+      }
+    },
+    "contact": {
+      "label": "Für Compliance-bezogene Anfragen kontaktieren Sie:",
+      "email": "support@paysense.com"
+    }
+  },
+  "CareersPage": {
+    "hero": {
+      "title": "Gestalten Sie die Zukunft",
+      "titleAccent": "des internationalen Bankings.",
+      "subtitle": "Werden Sie Teil eines Teams, das sich auf Transparenz, Sicherheit und den Aufbau von Finanzprodukten konzentriert, die über Grenzen hinweg funktionieren."
+    },
+    "culture": {
+      "meaningful": {
+        "title": "Sinnvolle Arbeit",
+        "desc": "Erstellen Sie Produkte, die Einzelpersonen und Unternehmen helfen, Geld international zu verwalten."
+      },
+      "standards": {
+        "title": "Hohe Standards",
+        "desc": "Wir schätzen klares Denken, Verantwortlichkeit und qualitativ hochwertige Ausführung in allem, was wir tun."
+      },
+      "growth": {
+        "title": "Wachstumsorientiert",
+        "desc": "Möglichkeiten zu lernen, Verantwortung zu übernehmen und mit dem Unternehmen zu wachsen."
+      },
+      "flexible": {
+        "title": "Flexible Arbeit",
+        "desc": "Remote- oder Hybrid-Arbeitsoptionen, konzipiert für die moderne globale Belegschaft."
+      }
+    },
+    "teams": {
+      "title": "Unsere Teams",
+      "list": [
+        "Engineering",
+        "Produkt und Design",
+        "Compliance und Risiko",
+        "Betrieb",
+        "Kundensupport",
+        "Geschäft und Partnerschaften"
+      ]
+    },
+    "openPositions": {
+      "title": "Offene Stellen",
+      "quote": "Wir wachsen und eröffnen regelmäßig Stellen in den Bereichen Engineering, Produkt, Compliance und Betrieb.",
+      "cta": "Offene Stellen anzeigen"
+    },
+    "hiringProcess": {
+      "title": "Einstellungsprozess",
+      "steps": [
+        {
+          "id": "01",
+          "title": "Bewerbungsprüfung",
+          "desc": "Wir prüfen Ihren Lebenslauf, Ihr Portfolio und Ihren Hintergrund."
+        },
+        {
+          "id": "02",
+          "title": "Erstes Gespräch",
+          "desc": "Ein kurzes Gespräch über Ihre Erfahrung und die Stelle."
+        },
+        {
+          "id": "03",
+          "title": "Stellenspezifische Bewertung",
+          "desc": "Eine praktische Herausforderung, um Ihre technischen oder kreativen Fähigkeiten zu zeigen."
+        },
+        {
+          "id": "04",
+          "title": "Endgültige Entscheidung",
+          "desc": "Ein abschließendes Gespräch über kulturelle Eignung, gefolgt von einem Angebot."
+        }
+      ]
+    },
+    "inclusion": {
+      "title": "Inklusionserklärung",
+      "text": "Wir sind bestrebt, einen inklusiven Arbeitsplatz zu schaffen und ermutigen Bewerbungen von Menschen mit unterschiedlichem Hintergrund und unterschiedlichen Erfahrungen."
+    },
+    "cta": {
+      "title": "Interessiert, uns beizutreten?",
+      "subtitle": "Senden Sie Ihren Lebenslauf oder Ihr Portfolio an unser Karriereteam.",
+      "button": "Jetzt bewerben"
+    }
+  },
+  "BusinessPage": {
+    "hero": {
+      "badge": "Für moderne Unternehmen",
+      "title": "Internationales Banking",
+      "titleAccent": "für Unternehmen.",
+      "description": "Verwalten Sie USD und EUR, zahlen Sie internationale Lieferanten und kontrollieren Sie Teamausgaben von einem leistungsstarken Dashboard aus. Gebaut für das globale afrikanische Geschäft.",
+      "cta": "Geschäftskonto eröffnen",
+      "sales": "Mit Vertrieb sprechen"
+    },
+    "audience": {
+      "title": "Wen wir bedienen",
+      "freelancers": "Freiberufler",
+      "startups": "Startups und KMU",
+      "teams": "Remote-Teams",
+      "merchants": "Händler"
+    },
+    "features": {
+      "wallets": {
+        "title": "USD- und EUR-Geschäftswallets",
+        "description": "Separate Salden für Ihre globalen Geschäfte. Keine erzwungene Umrechnung; behalten Sie Ihre Einnahmen in der Währung, in der Sie sie verdient haben."
+      },
+      "transfers": {
+        "title": "Internationale Überweisungen",
+        "description": "Zahlen Sie Lieferanten in über 100 Ländern per SWIFT, ACH oder SEPA. Transparente Gebühren, die Sie vor jedem Versand bestätigen."
+      },
+      "cards": {
+        "title": "Geschäftskarten",
+        "description": "Geben Sie virtuelle Karten für Ihr Team aus. Setzen Sie Limits, verfolgen Sie Ausgaben und verwalten Sie internationale Abonnements mühelos."
+      },
+      "loans": {
+        "title": "Geschäftskredite",
+        "description": "Zugang zu Kapital in USD oder EUR basierend auf Ihrem Cashflow. Einfache Rückzahlungsbedingungen ohne versteckte Aufschläge."
+      }
+    },
+    "onboarding": {
+      "title": "Der Onboarding-Prozess",
+      "step1": {
+        "title": "Konto erstellen",
+        "description": "Geben Sie grundlegende Unternehmens- und Eigentümerdetails an."
+      },
+      "step2": {
+        "title": "Unternehmen verifizieren",
+        "description": "Laden Sie CAC-Dokumente hoch und schließen Sie KYB-Prüfungen ab."
+      },
+      "step3": {
+        "title": "Transaktionen starten",
+        "description": "Greifen Sie auf Ihre Wallets zu und beginnen Sie weltweit zu handeln."
+      }
+    },
+    "footer": {
+      "title": "Skalieren Sie Ihr Geschäft global",
+      "description": "Werden Sie Teil der neuen Ära des afrikanischen Geschäfts. Verifizierung erforderlich, um ein sicheres Ökosystem für alle Partner zu gewährleisten.",
+      "cta": "Geschäftskonto eröffnen",
+      "note": "Unternehmensverifizierung erforderlich"
+    }
+  },
+  "AboutPage": {
+    "hero": {
+      "title": "Aufbau einfachen und transparenten",
+      "titleAccent": "internationalen Bankings.",
+      "subtitle": "Wir bieten Einzelpersonen und Unternehmen sicheren Zugang zu USD- und EUR-Konten, internationalen Zahlungen und transparentem Währungsumtausch."
+    },
+    "mission": {
+      "title": "Wer wir sind",
+      "description": "Wir sind ein Finanztechnologieunternehmen, das sich darauf konzentriert, internationales Banking klar, vorhersehbar und zugänglich zu machen. Unsere Plattform ist darauf ausgelegt, versteckte Gebühren, unklare Umrechnungen und unnötige Komplexität aus grenzüberschreitenden Finanzen zu eliminieren.",
+      "label": "Unsere Mission",
+      "quote": "Einzelpersonen und Unternehmen volle Kontrolle über ihr Geld über Grenzen hinweg zu geben, mit Transparenz, Sicherheit und Compliance im Kern."
+    },
+    "values": {
+      "transparency": {
+        "title": "Transparenz",
+        "desc": "Jeder Kurs, jede Gebühr und jede Umrechnung ist vor der Bestätigung sichtbar."
+      },
+      "security": {
+        "title": "Sicherheit",
+        "desc": "Kundengelder und -daten sind mit banküblichen Schutzmaßnahmen geschützt."
+      },
+      "compliance": {
+        "title": "Compliance",
+        "desc": "Wir arbeiten im Rahmen geltender Finanzvorschriften und -standards."
+      },
+      "clarity": {
+        "title": "Klarheit",
+        "desc": "Unser Produkt ist darauf ausgelegt, verstanden und nicht entschlüsselt zu werden."
+      }
+    },
+    "regulatory": {
+      "title": "Regulatorisches Engagement",
+      "description": "Wir arbeiten im Einklang mit geltenden Finanzvorschriften und halten strenge Standards für Identitätsprüfung, Transaktionsüberwachung und Datenschutz ein. Wir arbeiten mit lizenzierten Finanzinstituten zusammen, um Bankinfrastruktur bereitzustellen.",
+      "link": "Unser Compliance-Rahmenwerk ansehen"
+    },
+    "companyInfo": {
+      "title": "Unternehmensinformationen",
+      "entityLabel": "Unternehmen",
+      "entityValue": "Paysense Ltd",
+      "foundedLabel": "Gegründet",
+      "foundedValue": "2026",
+      "regionLabel": "Region",
+      "regionValue": "Global (Lagos HQ)"
+    },
+    "cta": {
+      "title": "Starten Sie mit internationalem Banking",
+      "personal": "Privatkonto eröffnen",
+      "business": "Geschäftskonto eröffnen"
+    }
+  },
+  "AdminCryptoPage": {
+    "title": "Krypto-Abwicklung",
+    "subtitle": "Bestätigen Sie Blockchain-Transfers und aktualisieren Sie Transaktions-Hashes.",
+    "table": {
+      "head": {
+        "assetUser": "Asset / Nutzer",
+        "destination": "Ziel-Wallet",
+        "amount": "Betrag (USD)",
+        "finalize": "Abschließen"
+      },
+      "empty": "Keine ausstehenden Krypto-Trades gefunden.",
+      "placeholderHash": "TX-Hash einfügen...",
+      "noAddress": "Keine Adresse angegeben"
+    },
+    "types": {
+      "buy": "KAUFEN",
+      "sell": "VERKAUFEN"
+    }
+  },
+  "AdminLogsPage": {
+    "title": "Systemprotokolle",
+    "subtitle": "Vollständiger Prüfpfad aller administrativen Aktionen.",
+    "table": {
+      "head": {
+        "timestamp": "Zeitstempel",
+        "admin": "Administrator",
+        "action": "Aktion",
+        "targetUser": "Zielnutzer",
+        "details": "Details"
+      },
+      "systemLabel": "System"
+    },
+    "actions": {
+      "approve": "GENEHMIGEN",
+      "kyc": "KYC",
+      "crypto": "KRYPTO"
+    }
+  },
+  "AdminSupportDashboard": {
+    "header": {
+      "title": "Admin-Warteschlange",
+      "subtitle": "Echtzeit-Support-Verwaltung"
+    },
+    "status": {
+      "online": "SIE SIND ONLINE",
+      "offline": "SIE SIND OFFLINE",
+      "error": "Statusaktualisierung fehlgeschlagen"
+    },
+    "table": {
+      "head": {
+        "userPriority": "Nutzer / Priorität",
+        "latestMessage": "Letzte Nachricht",
+        "actions": "Aktionen"
+      },
+      "needsReply": "BENÖTIGT ANTWORT",
+      "noMessages": "Neues Ticket - Noch keine Nachrichten",
+      "openButton": "Öffnen"
+    }
+  },
+  "AdminChatPage": {
+    "header": {
+      "defaultSubject": "Support-Anfrage",
+      "resolveButton": "Als gelöst markieren"
+    },
+    "chat": {
+      "inputPlaceholder": "Geben Sie Ihre Antwort ein...",
+      "noTime": ""
+    },
+    "sidebar": {
+      "metadata": "Metadaten",
+      "labels": {
+        "created": "Erstellt",
+        "type": "Typ",
+        "context": "Problemkontext"
+      },
+      "noDescription": "Keine Beschreibung"
+    }
+  },
+  "AdminUsersPage": {
+    "header": {
+      "title": "Nutzerverwaltung",
+      "subtitle": "Überprüfen und verwalten Sie alle registrierten Paysense-Konten.",
+      "statsLabel": "Gesamtnutzer"
+    },
+    "table": {
+      "head": {
+        "user": "Nutzer",
+        "role": "Rolle",
+        "kyc": "KYC-Status",
+        "stripe": "Stripe-ID",
+        "joined": "Beigetreten",
+        "actions": "Aktionen"
+      },
+      "kyc": {
+        "verified": "Verifiziert",
+        "unverified": "Nicht verifiziert"
+      },
+      "stripe": {
+        "empty": "Keine Stripe-ID"
+      },
+      "manageButton": "Verwalten"
+    }
+  },
+  "UserDetails": {
+    "backButton": "Zurück zur Nutzerliste",
+    "status": {
+      "terminated": "Gekündigt"
+    },
+    "actions": {
+      "verify": "Konto verifizieren",
+      "terminate": "Kündigen"
+    },
+    "stats": {
+      "checking": "Girokonto-Saldo",
+      "savings": "Sparkonto-Saldo",
+      "stripe": "Stripe-Status",
+      "none": "Keine"
+    },
+    "activity": {
+      "title": "Kürzliche Aktivität (Letzte 50)",
+      "table": {
+        "date": "Datum",
+        "description": "Beschreibung",
+        "amount": "Betrag",
+        "status": "Status"
+      }
+    }
+  },
+  "AdminWiresPage": {
+    "header": {
+      "title": "Wire-Warteschlange",
+      "subtitle": "Manuelle Überprüfung für Fiat-Bewegungen erforderlich."
+    },
+    "stats": {
+      "pendingDeposits": "Ausstehende Einzahlungen",
+      "pendingWithdrawals": "Ausstehende Auszahlungen"
+    },
+    "table": {
+      "head": {
+        "date": "Datum",
+        "user": "Nutzer",
+        "type": "Typ",
+        "amount": "Betrag",
+        "refCode": "Ref-Code",
+        "action": "Aktion"
+      },
+      "empty": "Keine ausstehenden Wires zur Verarbeitung.",
+      "approve": "Genehmigen"
+    }
+  },
+  "AdminError": {
+    "title": "Etwas ist schiefgelaufen",
+    "description": "Wir konnten Ihre Finanzdaten nicht laden. Dies könnte ein vorübergehendes Verbindungsproblem sein.",
+    "actions": {
+      "goHome": "Zum Dashboard",
+      "retry": "Erneut versuchen"
+    }
+  },
+  "AdminLayout": {
+    "sidebar": {
+      "brand": "Paysense",
+      "brandSuffix": "HQ",
+      "menuHeader": "Hauptmenü",
+      "nav": {
+        "overview": "Übersicht",
+        "users": "Nutzerverwaltung",
+        "wires": "Wire-Überweisungen",
+        "crypto": "Krypto-Assets",
+        "support": "Support",
+        "logs": "Protokolle"
+      },
+      "userRole": "Super Admin"
+    },
+    "topbar": {
+      "searchPlaceholder": "Nutzer, TXIDs oder E-Mails suchen...",
+      "logout": "Abmelden"
+    }
+  },
+  "AdminDashboard": {
+    "header": {
+      "title": "Plattformübersicht",
+      "subtitle": "Überwachung von Paysense-Leistung und Liquidität."
+    },
+    "stats": {
+      "totalUsers": {
+        "label": "Gesamtnutzer",
+        "trend": "+12% seit letztem Monat"
+      },
+      "liquidity": {
+        "label": "Gesamtliquidität",
+        "trend": "Systemweit"
+      },
+      "pending": {
+        "label": "Ausstehende Wires",
+        "trend": "Erfordert Aufmerksamkeit"
+      },
+      "kyc": {
+        "label": "KYC verifiziert",
+        "trend": "Vertrauenswert"
+      }
+    },
+    "quickActions": {
+      "title": "Schnellaktionen",
+      "verifyKyc": {
+        "title": "KYC verifizieren",
+        "desc": "Ausstehende Stripe-IDs prüfen"
+      },
+      "approveWires": {
+        "title": "Wires genehmigen",
+        "desc": "Fiat auf Girokonto verschieben"
+      }
+    },
+    "visualization": {
+      "title": "Volumenvisualisierung",
+      "placeholder": "Transaktionsvolumen-Diagramme werden hier angezeigt, während das System mehr Wires und Krypto-Trades verarbeitet."
+    }
+  },
+  "Dashboard": {
+    "welcome": "Willkommen zurück, {{name}}",
+    "savings": "SPAREN",
+    "checking": "GIROKONTO",
+    "accountNumber": "Kontonummer",
+    "addMoney": "GELD HINZUFÜGEN",
+    "virtual_card": "Virtuelle Karte • USD",
+    "manage_card": "KARTE VERWALTEN",
+    "get_card": "Virtuelle Karte ausstellen",
+    "card_promo": "Geben Sie sicher online mit einer sofortigen virtuellen Visa-Karte aus.",
+    "get_started": "Für $5.00 ausstellen",
+    "quick_services": "Schnelldienste",
+    "services": {
+      "wire": "Wire-Überweisung",
+      "local": "Lokale Überweisung",
+      "internal": "Interne Überweisung",
+      "crypto": "Krypto kaufen",
+      "bills": "Rechnungen bezahlen",
+      "add": "Begünstigten hinzufügen",
+      "card_deposit": "Karteneinzahlung",
+      "crypto_deposit": "Krypto-Einzahlung",
+      "check_deposit": "Scheck-Einzahlung"
+    },
+    "languages": {
+      "en": "🇬🇧 English",
+      "es": "🇪🇸 Español",
+      "fr": "🇫🇷 Français",
+      "ar": "🇸🇦 العربية",
+      "zh": "🇨🇳 中文",
+      "pt": "🇵🇹 Português",
+      "de": "🇩🇪 Deutsch",
+      "hi": "🇮🇳 हिन्दी"
+    }
+  },
+  "NotFound": {
+    "title": "Nicht gefunden",
+    "description": "Das gesuchte Element existiert nicht oder Sie haben keinen Zugriff darauf.",
+    "backButton": "Zurück zur Übersicht"
+  },
+  "Loading": {
+    "status": "Sichere Verbindung wird hergestellt..."
+  },
+  "AppError": {
+    "title": "Etwas ist schiefgelaufen",
+    "description": "Wir konnten Ihre Finanzdaten nicht laden. Dies könnte ein vorübergehendes Verbindungsproblem sein.",
+    "actions": {
+      "goHome": "Zum Dashboard",
+      "retry": "Erneut versuchen"
+    }
+  },
+  "WireTransfer": {
+    "header": "Wire-Überweisung",
+    "steps": {
+      "source": {
+        "title": "Quellkonto auswählen",
+        "savings": "USD-Sparkonto",
+        "checking": "USD-Girokonto"
+      },
+      "recipient": {
+        "title": "Empfängerinformationen",
+        "quickSelect": "Schnellauswahl",
+        "fullName": "Vollständiger Name des Empfängers",
+        "bankName": "Bankname",
+        "accountNumber": "Kontonummer",
+        "routingNumber": "Routing-Nummer",
+        "placeholder": {
+          "name": "Max Mustermann",
+          "bank": "JPMorgan Chase",
+          "acc": "000123456",
+          "route": "123456789"
+        }
+      },
+      "amount": {
+        "title": "Betrag eingeben",
+        "fee": "Überweisungsgebühr",
+        "total": "Gesamtabzug"
+      },
+      "auth": {
+        "title": "Endgültige Bestätigung",
+        "recipientLabel": "Empfänger",
+        "bankLabel": "Bank",
+        "totalAmount": "Gesamtbetrag",
+        "saveBeneficiary": "Diesen Empfänger für zukünftige Überweisungen speichern",
+        "pinLabel": "Transaktions-PIN eingeben",
+        "submit": "Bestätigen und Wire senden"
+      },
+      "success": {
+        "title": "Wire gesendet!",
+        "description": "Ihre Überweisung wird vom FedWire-Netzwerk verarbeitet. Kommt normalerweise in 1-3 Werktagen an.",
+        "action": "Zurück zum Dashboard"
+      }
+    },
+    "actions": {
+      "continue": "Weiter",
+      "back": "Zurück",
+      "review": "Überprüfen und senden"
+    }
+  },
+  "LocalTransfer": {
+    "header": {
+      "title": "PaySense-Netzwerk",
+      "subtitle": "Senden Sie Geld sofort an jeden PaySense-Nutzer"
+    },
+    "balance": {
+      "label": "Verfügbares Girokonto"
+    },
+    "form": {
+      "accountLabel": "Empfängerkonto #",
+      "accountPlaceholder": "10-stellige Kontonummer",
+      "verified": "Empfänger verifiziert",
+      "amountLabel": "Betrag ($)",
+      "amountPlaceholder": "0.00",
+      "insufficient": "Unzureichendes Guthaben im Girokonto",
+      "feeLabel": "Netzwerkgebühr (1% / Min. $2)",
+      "totalLabel": "Gesamtabzug",
+      "submit": "Überweisung bestätigen"
+    },
+    "modal": {
+      "pin": {
+        "title": "Transaktions-PIN eingeben",
+        "description": "Bestätigen Sie Ihre Identität, um diese Zahlung zu autorisieren.",
+        "cancel": "Abbrechen",
+        "authorize": "Autorisieren"
+      },
+      "processing": {
+        "title": "Wird verarbeitet...",
+        "description": "Sicherung Ihrer Transaktion."
+      },
+      "success": {
+        "title": "Überweisung gesendet!",
+        "description": "Guthaben wurde erfolgreich verschoben.",
+        "action": "Zurück zum Dashboard"
+      },
+      "error": {
+        "title": "Überweisung fehlgeschlagen",
+        "action": "Erneut versuchen"
+      }
+    }
+  },
+  "InternalTransfer": {
+    "header": "Interne Überweisung",
+    "labels": {
+      "from": "Von",
+      "to": "Nach",
+      "savings": "USD-Sparkonto",
+      "checking": "USD-Girokonto",
+      "amountLabel": "Zu überweisender Betrag",
+      "transferSpeed": "Überweisungsgeschwindigkeit",
+      "speedValue": "SOFORT"
+    },
+    "actions": {
+      "confirm": "Überweisung bestätigen",
+      "processing": "Wird verarbeitet..."
+    }
+  },
+  "TransactionDetails": {
+    "title": "Transaktionsdetails",
+    "referenceId": "Referenz-ID",
+    "labels": {
+      "type": "Typ",
+      "date": "Datum und Uhrzeit",
+      "merchant": "Händler / Empfänger",
+      "account": "Verwendetes Konto",
+      "status": {
+        "completed": "Abgeschlossen",
+        "pending": "Ausstehend"
+      }
+    },
+    "notes": {
+      "label": "Notiz hinzufügen",
+      "placeholder": "z.B. Mittagessen bezahlt, Januar-Miete...",
+      "disclaimer": "Notizen sind nur für Sie sichtbar und helfen Ihnen, Ihre Ausgaben zu verfolgen."
+    },
+    "actions": {
+      "download": "Beleg herunterladen",
+      "share": "Teilen",
+      "dispute": "Beanstanden"
+    }
+  },
+  "Receipt": {
+    "header": {
+      "title": "Belegdetails"
+    },
+    "stamp": {
+      "verified": "Verifiziert"
+    },
+    "ledger": {
+      "title": "PAYSENSE",
+      "subtitle": "Transaktions-Hauptbuch"
+    },
+    "status": {
+      "completed": "abgeschlossen",
+      "pending": "ausstehend",
+      "settled": "Autorisiert und abgewickelt"
+    },
+    "details": {
+      "dateTime": "Datum und Uhrzeit",
+      "referenceId": "Referenz-ID",
+      "accountType": "Kontotyp",
+      "transactionStatus": "Transaktionsstatus",
+      "accountMask": "Girokonto (**** 6708)"
+    },
+    "security": {
+      "shield": "Geschützt durch Paysense Secure-Shield™.",
+      "authCode": "Autorisierungscode"
+    },
+    "footer": {
+      "electronicReceipt": "Elektronischer Paysense-Beleg",
+      "generatedOn": "Generiert am",
+      "hash": "Transaktions-Hash"
+    },
+    "actions": {
+      "print": "Drucken",
+      "support": "Support"
+    }
+  },
+  "Support": {
+    "header": {
+      "title": "Support-Center",
+      "subtitle": "Direkte Hilfe vom Paysense-Team."
+    },
+    "liveSupport": {
+      "title": "Live-Support",
+      "status": {
+        "checking": "Verfügbarkeit wird geprüft...",
+        "online": "Agenten sind jetzt online",
+        "offline": "Agenten sind derzeit nicht verfügbar"
+      },
+      "actions": {
+        "chat": "Chat starten",
+        "ticket": "Ticket erstellen"
+      }
+    },
+    "channels": {
+      "email": "E-Mail",
+      "call": "Rufen Sie uns an"
+    },
+    "history": {
+      "chats": {
+        "title": "Chat-Verlauf",
+        "subtitle": "Ihre Live-Gespräche"
+      },
+      "tickets": {
+        "title": "Meine Tickets",
+        "subtitle": "Ungelöste Probleme verfolgen"
+      }
+    }
+  },
+  "TicketHistory": {
+    "header": {
+      "title": "Support-Tickets"
+    },
+    "tabs": {
+      "active": "Aktiv",
+      "resolved": "Gelöst"
+    },
+    "ticketCard": {
+      "viewConversation": "Gespräch anzeigen",
+      "status": {
+        "inProgress": "In Bearbeitung",
+        "resolved": "Gelöst"
+      }
+    },
+    "empty": "Keine Tickets gefunden."
+  },
+  "TicketDetail": {
+    "header": {
+      "ticketPrefix": "TIC-",
+      "openedLabel": "Geöffnet"
+    },
+    "messages": {
+      "agentLabel": "Support-Agent",
+      "userLabel": "Sie",
+      "status": {
+        "inProgress": "In Bearbeitung",
+        "resolved": "Gelöst"
+      }
+    },
+    "input": {
+      "placeholder": "Geben Sie Ihre Antwort ein...",
+      "tooltip": {
+        "attach": "Datei anhängen",
+        "send": "Nachricht senden"
+      }
+    }
+  },
+  "ChatList": {
+    "header": {
+      "title": "Meine Chats",
+      "newChat": "Neuer Chat"
+    },
+    "states": {
+      "loading": "Chat-Verlauf wird geladen...",
+      "empty": "Keine Support-Tickets gefunden.",
+      "continue": "Tippen Sie, um das Gespräch fortzusetzen..."
+    },
+    "status": {
+      "active": "Aktiv",
+      "closed": "Geschlossen"
+    },
+    "alerts": {
+      "createFailed": "Neuen Chat konnte nicht gestartet werden. Bitte versuchen Sie es erneut."
+    }
+  },
+  "ChatDetail": {
+    "header": {
+      "title": "Paysense-Support",
+      "agentStatus": "Agent online"
+    },
+    "system": {
+      "encryptionNote": "Sichere Verschlüsselung aktiv"
+    },
+    "messages": {
+      "sender": {
+        "user": "Sie",
+        "agent": "Support-Agent"
+      }
+    },
+    "input": {
+      "placeholder": "Nachricht eingeben...",
+      "actions": {
+        "send": "Senden",
+        "sending": "Wird gesendet..."
+      }
+    },
+    "errors": {
+      "fetchFailed": "Nachrichten konnten nicht geladen werden.",
+      "sendFailed": "Nachricht konnte nicht gesendet werden. Tippen Sie, um es erneut zu versuchen."
+    }
+  },
+  "HelpArticle": {
+    "states": {
+      "notFound": "Artikel nicht gefunden",
+      "goBack": "Zurück"
+    },
+    "feedback": {
+      "question": "War dieser Artikel hilfreich?",
+      "positive": "Ja",
+      "negative": "Nein"
+    },
+    "footer": {
+      "stillNeedHelp": "Benötigen Sie weitere Hilfe?",
+      "contactSupport": "Kontaktieren Sie unser Support-Team"
+    }
+  },
+  "AccountManagement": {
+    "header": {
+      "locationDetecting": "Standort wird ermittelt...",
+      "kycVerified": "Verifiziertes Mitglied"
+    },
+    "contactInfo": {
+      "title": "Kontaktinformationen",
+      "editBtn": "Bearbeiten",
+      "emailLabel": "E-Mail-Adresse",
+      "phoneLabel": "Telefonnummer"
+    },
+    "kycBanner": {
+      "pending": {
+        "title": "Verifizierung ausstehend",
+        "desc": "Wir prüfen Ihre Dokumente."
+      },
+      "unverified": {
+        "title": "Identitätsprüfung",
+        "desc": "Verifizieren Sie Ihre ID, um Limits freizuschalten.",
+        "action": "Jetzt verifizieren"
+      }
+    },
+    "security": {
+      "title": "Sicherheit und Datenschutz",
+      "pin": {
+        "label": "Transaktions-PIN",
+        "active": "Sicherheitscode ist aktiv",
+        "inactive": "Code für Transaktionen festlegen"
+      },
+      "twoFA": {
+        "label": "Zwei-Faktor-Authentifizierung",
+        "desc": "Login per E-Mail-OTP verifizieren"
+      }
+    },
+    "pinModal": {
+      "step1": {
+        "title": "Identität verifizieren",
+        "instruction": "Geben Sie den Code ein, der an gesendet wurde",
+        "resend": "Erneut senden",
+        "submit": "Verifizieren und fortfahren"
+      },
+      "step2": {
+        "title": "Sichere PIN",
+        "instruction": "Erstellen Sie Ihre 4-stellige PIN",
+        "submit": "PIN aktivieren"
+      },
+      "success": {
+        "title": "PIN gesichert!",
+        "desc": "Ihre Transaktionen sind jetzt geschützt."
+      }
+    },
+    "actions": {
+      "signOut": "Vom Konto abmelden",
+      "errorTitle": "Sicherheitswarnung",
+      "errorClose": "Verstanden"
+    }
+  },
+  "StripeSetup": {
+    "bridge": {
+      "loading": {
+        "title": "Verbindung zu Stripe",
+        "description": "Sichere Weiterleitung zur Verifizierung Ihrer Bank und Identität..."
+      },
+      "error": {
+        "default": "Verbindung zu Stripe fehlgeschlagen.",
+        "goBack": "Zurück"
+      }
+    }
+  },
+  "AccountSettings": {
+    "onboarding": {
+      "stripeRequired": {
+        "title": "Kontoeinrichtung erforderlich",
+        "desc": "Richten Sie Ihre Stripe Connect ID ein, um Überweisungen zu aktivieren.",
+        "action": "Starten"
+      },
+      "kycPending": {
+        "title": "Dokumente werden geprüft",
+        "desc": "Stripe prüft derzeit Ihr Profil."
+      },
+      "kycRejected": {
+        "title": "Verifizierung fehlgeschlagen",
+        "desc": "Bitte überprüfen Sie Ihre E-Mail für Ablehnungsdetails."
+      },
+      "kycStart": {
+        "title": "Identitätsprüfung",
+        "desc": "Verifizieren Sie Ihre Identität, um Limits zu erhöhen.",
+        "action": "Verifizieren"
+      }
+    },
+    "payouts": {
+      "title": "Verknüpftes Auszahlungskonto",
+      "status": {
+        "missing": "Fehlend",
+        "connected": "Hauptbank"
+      },
+      "action": {
+        "link": "Bank verknüpfen",
+        "placeholder": "Keine Bank verbunden"
+      }
+    },
+    "preferences": {
+      "title": "Einstellungen",
+      "language": {
+        "label": "Sprache und Region",
+        "status": "Sprache aktualisiert!",
+        "error": "Sprachaktualisierung fehlgeschlagen."
+      },
+      "notifications": {
+        "label": "Push-Benachrichtigungen",
+        "desc": "Benachrichtigungen für alle Transaktionen"
+      }
+    }
+  },
+  "Alerts": {
+    "header": {
+      "title": "Benachrichtigungen",
+      "markRead": "Alle als gelesen markieren",
+      "loading": "Benachrichtigungen werden geladen..."
+    },
+    "empty": {
+      "title": "Keine neuen Benachrichtigungen",
+      "subtitle": "Wir benachrichtigen Sie, wenn etwas passiert."
+    },
+    "clearModal": {
+      "title": "Alle Benachrichtigungen löschen?",
+      "description": "Sind Sie sicher, dass Sie alle Benachrichtigungen löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "cancel": "Abbrechen",
+      "confirm": "Ja, löschen"
+    },
+    "actions": {
+      "clearHistory": "Benachrichtigungsverlauf löschen"
+    }
+  },
+  "History": {
+    "header": {
+      "title": "Verlauf",
+      "searchPlaceholder": "Transaktionen durchsuchen...",
+      "download": "CSV/PDF exportieren"
+    },
+    "filters": {
+      "title": "Transaktionen filtern",
+      "sections": {
+        "currency": "Währung",
+        "type": "Transaktionstyp"
+      },
+      "types": {
+        "credits": "Gutschriften",
+        "debits": "Belastungen",
+        "fx": "FX-Umrechnungen",
+        "loans": "Kredite"
+      },
+      "actions": {
+        "reset": "Zurücksetzen",
+        "apply": "Filter anwenden"
+      }
+    },
+    "transactions": {
+      "fxTitle": "FX-Umrechnung",
+      "fxSubTo": "Zu {{currency}}-Wallet",
+      "fxSubFrom": "Von {{currency}}-Wallet",
+      "cardPurchase": "Kartenkauf"
+    }
+  },
+  "DepositStatus": {
+    "pending": {
+      "title": "Einzahlung ausstehend",
+      "amountLabel": "Geschätzter Betrag",
+      "verificationNote": "Ihre {{account}}-Einzahlung wird von unseren sicheren Systemen verifiziert. Dies dauert normalerweise weniger als 60 Sekunden.",
+      "secureTag": "Bankübliche sichere Überweisung"
+    },
+    "actions": {
+      "dashboard": "Zurück zum Dashboard"
+    },
+    "loading": "Einzahlungsdetails werden verarbeitet..."
+  },
+  "RequestMoney": {
+    "openLink": {
+      "title": "Zahlungslink öffnen",
+      "description": "Der Zahler kann jeden beliebigen Betrag wählen.",
+      "button": {
+        "idle": "Teilbaren Link erstellen",
+        "loading": "Wird generiert..."
+      },
+      "actions": {
+        "copy": "Kopieren",
+        "copied": "Kopiert!",
+        "share": "Link teilen"
+      }
+    }
+  },
+  "CryptoDeposit": {
+    "header": {
+      "title": "Krypto einzahlen"
+    },
+    "selection": {
+      "label": "Wählen Sie ein Asset zur Einzahlung",
+      "networkPrefix": "Netzwerk:"
+    },
+    "wallet": {
+      "secureTitle": "Sichere {{symbol}}-Wallet",
+      "loading": "Eindeutige Adresse wird zugewiesen...",
+      "copy": "Zum Kopieren klicken",
+      "copied": "Kopiert!",
+      "warning": "WARNUNG: Das Senden von Assets über andere Netzwerke als {{network}} führt zu dauerhaftem Verlust.",
+      "changeAsset": "Andere Münze einzahlen"
+    },
+    "security": {
+      "encryption": "Ende-zu-Ende-Verschlüsselung",
+      "footerNote": "Guthaben wird nach Netzwerkbestätigungen in Ihrem Saldo angezeigt. Dies dauert normalerweise 5-30 Minuten, abhängig vom Netzwerkverkehr."
+    }
+  },
+  "CheckDeposit": {
+    "header": {
+      "title": "Scheck-Einzahlung",
+      "processingTime": "Standardverarbeitung: 1-3 Werktage"
+    },
+    "form": {
+      "amountLabel": "Scheckbetrag (USD)",
+      "destinationLabel": "Einzahlen auf",
+      "placeholder": "0.00"
+    },
+    "capture": {
+      "front": "Vorderseite des Schecks",
+      "back": "Rückseite des Schecks",
+      "endorsementHint": "Indossiert mit 'Nur für mobile Einzahlung'",
+      "statusReady": "Bild bereit",
+      "instructions": "Stellen Sie sicher, dass der Scheck auf einer dunklen, flachen Oberfläche mit guter Beleuchtung liegt. Alle vier Ecken müssen sichtbar sein."
+    },
+    "status": {
+      "submitting": "Wird verarbeitet...",
+      "submit": "Einzahlung einreichen",
+      "errorInvalidAmount": "Bitte geben Sie einen gültigen Einzahlungsbetrag ein",
+      "errorConnection": "Ein Verbindungsfehler ist aufgetreten. Bitte versuchen Sie es erneut."
+    },
+    "success": {
+      "title": "Scheck eingereicht",
+      "description": "Wir haben Ihre Scheckbilder erhalten. Die meisten Einzahlungen werden innerhalb von 24-48 Stunden nach manueller Prüfung abgewickelt.",
+      "action": "Zurück zur Startseite"
+    }
+  },
+  "CardDeposit": {
+    "header": {
+      "title": "Geld hinzufügen"
+    },
+    "steps": {
+      "destination": {
+        "title": "Ziel auswählen",
+        "description": "Wohin möchten Sie dieses Guthaben einzahlen?",
+        "options": {
+          "checking": "Girokonto",
+          "savings": "Sparkonto"
+        }
+      },
+      "amount": {
+        "title": "Einzahlungsbetrag",
+        "description": "Guthaben ist sofort nach Verifizierung verfügbar."
+      }
+    },
+    "checkout": {
+      "title": "Sichere Zahlung",
+      "summary": "Schließen Sie Ihre {{amount}}-Einzahlung ab",
+      "status": {
+        "initializing": "Wird initialisiert...",
+        "verifying": "Wird verifiziert...",
+        "pay": "{{amount}} zahlen"
+      },
+      "button": "Zur sicheren Kasse gehen",
+      "security": "PCI-DSS-konforme Verschlüsselung"
+    },
+    "errors": {
+      "invalidAmount": "Bitte geben Sie einen gültigen Betrag ein",
+      "initFailed": "Zahlungsinitialisierung fehlgeschlagen"
+    }
+  },
+  "CryptoTrade": {
+    "header": {
+      "title": "Krypto handeln",
+      "subtitle": "Sofortige Ausführung zum Marktpreis",
+      "savingsLabel": "Sparkonto:"
+    },
+    "toggle": {
+      "buy": "KAUFEN",
+      "sell": "VERKAUFEN"
+    },
+    "assetSelector": {
+      "balanceLabel": "Ihr {{symbol}}:",
+      "listTitle": "Asset wählen"
+    },
+    "input": {
+      "spendLabel": "USD ausgeben",
+      "receiveLabel": "USD erhalten",
+      "placeholder": "0.00",
+      "rateLabel": "1 {{symbol}} = {{rate}}",
+      "estimation": {
+        "buy": "Erhalten ≈ {{amount}} {{symbol}}",
+        "sell": "Verkaufen ≈ {{amount}} {{symbol}}"
+      }
+    },
+    "summary": {
+      "marketPrice": "Marktpreis",
+      "fee": "Transaktionsgebühr",
+      "totalPay": "Gesamt zu zahlen",
+      "totalReceive": "Zu erhaltender Betrag"
+    },
+    "actions": {
+      "confirm": "{{mode}} bestätigen",
+      "processing": "Wird verarbeitet..."
+    },
+    "errors": {
+      "minTrade": "Mindesthandel für {{name}} ist {{amount}}.",
+      "invalidAmount": "Bitte geben Sie einen gültigen Betrag ein.",
+      "insufficientSavings": "Unzureichendes Guthaben auf Ihrem USD-Sparkonto.",
+      "insufficientCrypto": "Unzureichendes {{symbol}}-Guthaben.",
+      "connection": "Verbindung verloren. Bitte versuchen Sie es erneut.",
+      "declined": "Transaktion abgelehnt."
+    },
+    "success": {
+      "title": "Trade erfolgreich!",
+      "buyDescription": "Sie haben erfolgreich {{amount}} {{symbol}} gekauft",
+      "sellDescription": "Sie haben erfolgreich {{amount}} {{symbol}} für USD verkauft",
+      "action": "Zurück zum Dashboard"
+    }
+  },
+  "CardIssuing": {
+    "header": {
+      "title": "Virtuelle Karte",
+      "statusLabel": "Status:",
+      "states": {
+        "frozen": "Eingefroren",
+        "active": "Aktiv",
+        "inactive": "Inaktiv"
+      }
+    },
+    "issueState": {
+      "cardPlaceholder": "•••• •••• •••• ••••",
+      "holderLabel": "Karteninhaber",
+      "title": "Sofortige Ausgabe",
+      "description": "Generieren Sie eine sichere Visa-Karte für Online-Zahlungen. Guthaben wird direkt von Ihrem Girokonto abgebucht.",
+      "features": {
+        "fee": "Einmalige Gebühr: {{amount}}",
+        "security": "Sichere 3D-Authentifizierung"
+      },
+      "action": "Karte aktivieren"
+    },
+    "activeState": {
+      "frozenOverlay": "Karte eingefroren",
+      "expiryLabel": "Ablauf",
+      "cvvLabel": "CVV",
+      "actions": {
+        "freeze": "Einfrieren",
+        "unfreeze": "Auftauen",
+        "limits": "Limits"
+      }
+    },
+    "activity": {
+      "title": "Kürzliche Aktivität",
+      "viewAll": "Vollständiger Verlauf",
+      "emptyState": "Keine Kartenaktivität gefunden"
+    },
+    "notifications": {
+      "copySuccess": "Kartennummer in Zwischenablage kopiert",
+      "issueSuccess": "Virtuelle Karte aktiviert!",
+      "freezeSuccess": "Karte erfolgreich eingefroren",
+      "unfreezeSuccess": "Karte ist jetzt aktiv",
+      "error": "Verbindungsfehler. Versuchen Sie es erneut."
+    }
+  },
+  "PayBills": {
+    "header": {
+      "title": "Rechnungscenter",
+      "itemCount": "{{count}} / 5 ARTIKEL",
+      "totalLabel": "Gesamt zu zahlen"
+    },
+    "basket": {
+      "title": "Ihr Warenkorb",
+      "addBtn": "+ Rechnung hinzufügen",
+      "empty": {
+        "title": "Noch keine Rechnungen hinzugefügt",
+        "action": "Hier tippen, um zu beginnen"
+      },
+      "item": {
+        "remove": "Artikel entfernen"
+      }
+    },
+    "addBill": {
+      "title": "Rechnungskategorie auswählen",
+      "categories": {
+        "elec": "Strom",
+        "net": "Internet",
+        "cable": "Kabelfernsehen",
+        "mobile": "Aufladen"
+      },
+      "form": {
+        "amountLabel": "Zu zahlender Betrag ($)",
+        "amountPlaceholder": "0.00",
+        "submit": "Zum Warenkorb hinzufügen"
+      }
+    },
+    "checkout": {
+      "title": "Kasse",
+      "grandTotal": "Gesamtsumme",
+      "authorize": "Zahlung autorisieren",
+      "edit": "Warenkorb bearbeiten",
+      "settlementSource": "Abwicklung",
+      "accountName": "Girokonto"
+    },
+    "success": {
+      "title": "Abgewickelt!",
+      "description": "Ihre Zahlungen werden verarbeitet. Überprüfen Sie Ihren Transaktionsverlauf für Belege.",
+      "action": "Zurück zum Dashboard"
+    },
+    "errors": {
+      "failed": "Zahlung fehlgeschlagen.",
+      "limitReached": "Warenkorb ist voll (max. 5)."
+    }
+  },
+  "AddBeneficiary": {
+    "header": {
+      "title": "Begünstigten hinzufügen"
+    },
+    "switcher": {
+      "local": "Lokal",
+      "international": "International"
+    },
+    "form": {
+      "fullName": {
+        "label": "Vollständiger Name",
+        "placeholder": "Rechtlicher Name des Empfängers"
+      },
+      "bankName": {
+        "label": "Bankname",
+        "placeholder": "z.B. JPMorgan Chase"
+      },
+      "accountNumber": {
+        "label": "Kontonummer",
+        "placeholder": "Kontonummer eingeben"
+      },
+      "routingNumber": {
+        "label": "Routing-Nummer (ABA)",
+        "placeholder": "9 Ziffern"
+      },
+      "swiftCode": {
+        "label": "SWIFT / BIC-Code",
+        "placeholder": "8-11 Zeichen"
+      },
+      "nickname": {
+        "label": "Spitzname (Optional)",
+        "placeholder": "z.B. Meine Ersparnisse"
+      },
+      "submit": {
+        "idle": "Begünstigten speichern",
+        "loading": "Wird gespeichert..."
+      }
+    },
+    "success": {
+      "title": "Begünstigter hinzugefügt",
+      "actionPrimary": "Jetzt Geld senden",
+      "actionSecondary": "Zurück zur Startseite"
+    },
+    "error": {
+      "title": "Fehler",
+      "requiredFields": "Bitte füllen Sie die erforderlichen Felder aus",
+      "close": "Schließen"
+    }
+  },
+  "AccountDetails": {
+    "header": {
+      "title": "Kontodetails",
+      "savingsSub": "USD-Sparkonto",
+      "checkingSub": "USD-Girokonto",
+      "accNumberLabel": "Kontonummer",
+      "bankNameLabel": "Bankname",
+      "bankName": "Paysense"
+    },
+    "actions": {
+      "deposit": "Einzahlen",
+      "request": "Anfordern"
+    },
+    "transactions": {
+      "title": "Transaktionsverlauf",
+      "empty": "Noch keine Transaktionen.",
+      "showMore": "Mehr anzeigen",
+      "loading": "Lädt...",
+      "types": {
+        "credit": "Gutschrift",
+        "debit": "Belastung"
+      }
+    }
+  },
+  "Terminated": {
+    "title": "Eingeschränktes Konto",
+    "description": "Wir haben Aktivitäten identifiziert, die gegen unsere Nutzungsbedingungen verstoßen. Infolgedessen wurde Ihr Konto dauerhaft gekündigt.",
+    "appeal": {
+      "header": "Wie man Einspruch erhebt",
+      "emailTitle": "E-Mail-Support",
+      "emailAddress": "appeals@paysense.com",
+      "chatTitle": "Live-Chat",
+      "chatAvailability": "Verfügbar Mo-Fr, 9-17 Uhr"
+    },
+    "actions": {
+      "contact": "Kundendienst kontaktieren",
+      "logout": "Von dieser Sitzung abmelden"
+    },
+    "meta": {
+      "reference": "Referenz-ID"
+    }
+  }
+}

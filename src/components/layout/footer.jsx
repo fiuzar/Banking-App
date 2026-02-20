@@ -1,7 +1,13 @@
+'use client'
+
 import Link from "next/link"
+import {useLanguage} from "@/messages/LanguageProvider"
 
 // components/layout/Footer.tsx
 export default function Footer() {
+
+    const {t, locale} = useLanguage()
+
     return (
         <footer className="bg-white border-t border-n-300 py-16">
             <div className="mx-auto max-w-7xl px-screen-p">
@@ -10,41 +16,41 @@ export default function Footer() {
                         <span className="text-xl font-bold text-brand-blue">PaySense</span>
                     </div>
                     <div>
-                        <h4 className="font-bold text-n-900 mb-4">Features</h4>
+                        <h4 className="font-bold text-n-900 mb-4">{t('Footer', 'features')}</h4>
                         <ul className="space-y-2 text-sm text-n-500">
-                            <li>USD Wallet</li>
-                            <li>EUR Wallet</li>
-                            <li>Virtual Cards</li>
-                            <li>International FX</li>
+                            <li>{t('Footer', 'usdWallet')}</li>
+                            <li>{t('Footer', 'eurWallet')}</li>
+                            <li>{t('Footer', 'virtualCards')}</li>
+                            <li>{t('Footer', 'internationalFx')}</li>
                         </ul>
                     </div>
                     <div>
-                        <h4 className="font-bold text-n-900 mb-4">Company</h4>
+                        <h4 className="font-bold text-n-900 mb-4">{t('company')}</h4>
                         <ul className="space-y-2 text-sm text-n-500">
                             <li>
-                                <Link href="/about">About Us</Link></li>
+                                <Link href={`/about`}>{t('Footer', 'aboutUs')}</Link></li>
                             <li>
-                                <Link href="/compliance">Compliance</Link>
+                                <Link href={`/compliance`}>{t('Footer', 'compliance')}</Link>
                             </li>
                             <li>
-                                <Link href={`/careers`}>Careers</Link>
+                                <Link href={`/careers`}>{t('Footer', 'careers')}</Link>
                             </li>
                         </ul>
                     </div>
                     <div>
-                        <h4 className="font-bold text-n-900 mb-4">Legal</h4>
+                        <h4 className="font-bold text-n-900 mb-4">{t('legal')}</h4>
                         <ul className="space-y-2 text-sm text-n-500">
                             <li>
-                                <Link href="/privacy">Privacy Policy</Link>
+                                <Link href={`/privacy`}>{t('Footer', 'privacyPolicy')}</Link>
                             </li>
                             <li>
-                                <Link href="/terms">Terms of Service</Link>
+                                <Link href={`/terms`}>{t('Footer', 'termsOfService')}</Link>
                             </li>
                         </ul>
                     </div>
                 </div>
                 <div className="mt-12 pt-8 border-t border-n-100 text-[12px] text-n-500 leading-relaxed">
-                    PaySense is a financial technology company, not a bank. Banking services are provided by our licensed partner banks. USD deposits are FDIC insured up to $250,000 through our partner banks.
+                    {t('Footer', 'disclaimer')}
                 </div>
             </div>
         </footer>

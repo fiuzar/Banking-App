@@ -1,16 +1,16 @@
+'use client'
+
+import {useLanguage} from "@/messages/LanguageProvider"
+
 // components/home/HowItWorks.tsx
 export default function HowItWorks() {
-  const steps = [
-    "Create your account",
-    "Verify your identity",
-    "Add funds in USD/EUR",
-    "Send, spend or convert"
-  ];
+    const {t} = useLanguage()
 
+  const steps = [t('HowItWorks', 'step1'), t('HowItWorks', 'step2'), t('HowItWorks', 'step3'), t('HowItWorks', 'step4')];
   return (
     <section className="py-24 bg-white">
       <div className="mx-auto max-w-5xl px-screen-p text-center">
-        <h2 className="text-3xl font-bold mb-16">Get started in minutes</h2>
+        <h2 className="text-3xl font-bold mb-16">{t('title')}</h2>
         <div className="flex flex-col md:flex-row justify-between items-start gap-8 relative">
           {steps.map((step, i) => (
             <div key={i} className="flex-1 mx-auto flex flex-col items-center relative z-10">
