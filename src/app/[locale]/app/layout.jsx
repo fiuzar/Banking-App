@@ -4,7 +4,7 @@ import { UserContext, AccountDetailsContext } from "@/server-functions/contexts"
 import { SessionProvider } from "next-auth/react";
 import React, { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
-import { DesktopNaBar, MobileNavBar } from "@/components/app/navbers";
+import { DesktopNavBar, MobileNavBar } from "@/components/app/navbers";
 import {Toaster} from "sonner"
 
 
@@ -18,7 +18,7 @@ export default function Layout({ children }) {
 				<AccountDetailsContext.Provider value={{ accountDetails, setAccountDetails }}>
 					<div className="flex min-h-screen bg-background">
 						{/* DESKTOP SIDEBAR */}
-						<DesktopNaBar />
+						<DesktopNavBar />
 
 						{/* MOBILE CONTENT WRAPPER */}
 						<div className="flex-1 flex flex-col min-w-0">
