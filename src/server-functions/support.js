@@ -88,13 +88,48 @@ export async function getChatDetails(conversationId) {
 }
 
 // 5. SEND MESSAGE (Works for both Live Chat and Ticket Replies)
-export async function sendMessage(conversationId, text) {
+export async function sendMessage(formData) {
     const userId = await getUserId();
-    
+    const conversationId = formData.get('conversationId');
+    const text = formData.get('text');
+    const file = formData.get('file'); // This is a File object
+
+    let fileUrl = null;
+
+    if (file && file.size > 0) {
+        /**
+         * OPTION A: TRADITIONAL HOSTING (Uncomment when you move off Vercel)
+         * This saves the file to the local 'public/uploads' folder.
+         */
+        /*
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const filename = Date.now() + "_" + file.name.replaceAll(" ", "_");
+        const uploadDir = path.join(process.cwd(), "public/uploads");
+        
+        // Ensure directory exists
+        await fs.mkdir(uploadDir, { recursive: true });
+        await fs.writeFile(path.join(uploadDir, filename), buffer);
+        
+        fileUrl = `/uploads/${filename}`;
+        */
+
+        /**
+         * OPTION B: SERVERLESS / TEMP (Vercel Friendly)
+         * Since Vercel has no persistent disk, we usually use an S3 bucket or Vercel Blob.
+         * For now, we will store the 'Filename' and simulate the upload.
+         */
+        fileUrl = `TEMP_STORAGE_ID_${Date.now()}_${file.name}`;
+        // Logic: In a real serverless app, you'd use: put(fileUrl, file, { access: 'public' });
+    }
+
+    // Update your DB query to include a column for attachments if you have one
+    // or append the URL to the text for now.
+    const finalMessageText = fileUrl ? `${text} [Attachment: ${fileUrl}]`.trim() : text;
+
     const result = await query(
         `INSERT INTO paysense_messages (conversation_id, sender_id, sender_role, message_text)
          VALUES ($1, $2, 'USER', $3) RETURNING *`,
-        [conversationId, userId, text]
+        [conversationId, userId, finalMessageText]
     );
 
     revalidatePath(`/app/support/chats/${conversationId}`);

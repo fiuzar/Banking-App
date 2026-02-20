@@ -79,8 +79,15 @@ export default function ChatDetailPage() {
         setMessages(prev => [...prev, tempMsg]);
 
         try {
-            // Note: Update your sendMessage function to handle FormData if sending files
-            await sendMessage(id, messageText, fileToUpload);
+            const formData = new FormData();
+    formData.append('conversationId', id);
+    formData.append('text', messageText);
+    if (fileToUpload) {
+        formData.append('file', fileToUpload);
+    }
+
+    // Call the server function with FormData
+    await sendMessage(formData);
         } catch (err) {
             console.error("Failed to send:", err);
             alert(t("ChatDetail", "errors.sendFailed"));
