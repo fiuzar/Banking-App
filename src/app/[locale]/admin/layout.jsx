@@ -15,7 +15,8 @@ import {
   Bell,
   Menu,
   X,
-  CreditCard
+  CreditCard,
+  MessageSquare
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 

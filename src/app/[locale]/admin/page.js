@@ -5,7 +5,7 @@ import {
     AlertCircle, 
     TrendingUp, 
     ArrowUpRight, 
-    CreditCard 
+    CreditCard,
 } from "lucide-react";
 import Link from "next/link";
 
