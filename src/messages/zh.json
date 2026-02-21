@@ -139,7 +139,7 @@
     "popular_topics": "热门主题",
     "search_results": "搜索结果（{count}）",
     "clear": "清除",
-    "try_searching": "尝试搜索"卡片"或"限额""
+    "try_searching": "尝试搜索「卡片」或「限额」"
   },
   "CreateTicketModal": {
     "title": "创建工单",
@@ -246,7 +246,7 @@
         "title": "7. 外汇兑换",
         "p1": "透明度是我们的核心原则。在您确认任何兑换之前，应用程序中会显示汇率和所有适用费用。",
         "warning": "一旦确认，外汇兑换即为最终结果，无法撤销。",
-        "p2": "应用程序不执行"静默"或隐藏的转换。您看到的汇率就是您得到的汇率。"
+        "p2": "应用程序不执行「静默」或隐藏的转换。您看到的汇率就是您得到的汇率。"
       },
       "loans": {
         "title": "9. 贷款",
@@ -392,7 +392,7 @@
   "HelpPage": {
     "header": {
       "title": "帮助和支持",
-      "searchPlaceholder": "搜索帮助（例如"货币兑换"、"卡片"）"
+      "searchPlaceholder": "搜索帮助（例如「货币兑换」、「卡片」）"
     },
     "categories": {
       "wallets": "账户和钱包",
@@ -411,7 +411,7 @@
         },
         "automatic": {
           "question": "转换是自动的吗？",
-          "answer": "不是。为了维护我们"无静默外汇"的承诺，所有货币兑换都必须由您手动审查和确认。"
+          "answer": "不是。为了维护我们「无静默外汇」的承诺，所有货币兑换都必须由您手动审查和确认。"
         },
         "cardLinking": {
           "question": "卡片是否与特定货币绑定？",
@@ -1250,11 +1250,6 @@
       "locationDetecting": "正在检测位置...",
       "kycVerified": "已验证会员"
     },
-    "language": {
-    "title": "偏好设置",
-    "label": "应用语言",
-    "desc": "选择您首选的语言"
-  },
     "contactInfo": {
       "title": "联系信息",
       "editBtn": "编辑",
@@ -1475,7 +1470,7 @@
     "capture": {
       "front": "支票正面",
       "back": "支票背面",
-      "endorsementHint": "用"仅供移动存款"背书",
+      "endorsementHint": "用「仅供移动存款」背书",
       "statusReady": "图像就绪",
       "instructions": "确保支票放置在黑暗平坦的表面上，光线充足。四个角必须可见。"
     },
